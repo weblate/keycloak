@@ -16,18 +16,6 @@
  */
 package org.keycloak.services;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
 import org.keycloak.component.ComponentFactory;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.UserCredentialStoreManager;
@@ -50,7 +38,6 @@ import org.keycloak.models.UserCredentialManager;
 import org.keycloak.models.UserLoginFailureProvider;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.UserSessionProvider;
-import org.keycloak.models.cache.CacheRealmProvider;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.provider.Provider;
@@ -59,13 +46,24 @@ import org.keycloak.provider.InvalidationHandler.InvalidableObjectType;
 import org.keycloak.provider.InvalidationHandler.ObjectType;
 import org.keycloak.services.clientpolicy.ClientPolicyManager;
 import org.keycloak.sessions.AuthenticationSessionProvider;
-import org.keycloak.storage.ClientStorageManager;
 import org.keycloak.storage.DatastoreProvider;
 import org.keycloak.storage.UserStorageManager;
 import org.keycloak.storage.federated.UserFederatedStorageProvider;
 import org.keycloak.vault.DefaultVaultTranscriber;
 import org.keycloak.vault.VaultProvider;
 import org.keycloak.vault.VaultTranscriber;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
@@ -79,10 +77,7 @@ public class DefaultKeycloakSession implements KeycloakSession {
     private final Map<String, Object> attributes = new HashMap<>();
     private final Map<InvalidableObjectType, Set<Object>> invalidationMap = new HashMap<>();
     private DatastoreProvider datastoreProvider;
-    private RealmProvider model;
-    private ClientProvider clientProvider;
     private UserStorageManager userStorageManager;
-    private ClientStorageManager clientStorageManager;
     private UserCredentialStoreManager userCredentialStorageManager;
     private UserSessionProvider sessionProvider;
     private UserLoginFailureProvider userLoginFailureProvider;
@@ -104,25 +99,6 @@ public class DefaultKeycloakSession implements KeycloakSession {
     @Override
     public KeycloakContext getContext() {
         return context;
-    }
-
-    private RealmProvider getRealmProvider() {
-        CacheRealmProvider cache = getProvider(CacheRealmProvider.class);
-        if (cache != null) {
-            return cache;
-        } else {
-            return getProvider(RealmProvider.class);
-        }
-    }
-
-    private ClientProvider getClientProvider() {
-        // TODO: Extract ClientProvider from CacheRealmProvider and use that instead
-        ClientProvider cache = getProvider(CacheRealmProvider.class);
-        if (cache != null) {
-            return cache;
-        } else {
-            return clientStorageManager();
-        }
     }
 
     private DatastoreProvider getDatastoreProvider() {
@@ -198,45 +174,42 @@ public class DefaultKeycloakSession implements KeycloakSession {
 
     @Override
     public RealmProvider realmLocalStorage() {
-        return getProvider(RealmProvider.class);
+        return realms();
     }
 
     @Override
     public ClientProvider clientLocalStorage() {
-        return getProvider(ClientProvider.class);
+        return clients();
     }
 
     @Override
     public ClientScopeProvider clientScopeLocalStorage() {
-        return getDatastoreProvider().clientScopes();
+        return clientScopes();
     }
 
     @Override
     public GroupProvider groupLocalStorage() {
-        return getDatastoreProvider().groups();
+        return groups();
     }
 
     @Override
     public ClientProvider clientStorageManager() {
-        if (clientStorageManager == null) {
-            clientStorageManager = new ClientStorageManager(this, factory.getClientStorageProviderTimeout());
-        }
-        return clientStorageManager;
+        return clients();
     }
 
     @Override
     public ClientScopeProvider clientScopeStorageManager() {
-        return getDatastoreProvider().clientScopes();
+        return clientScopes();
     }
 
     @Override
     public RoleProvider roleLocalStorage() {
-        return getDatastoreProvider().roles();
+        return roles();
     }
 
     @Override
     public RoleProvider roleStorageManager() {
-        return getDatastoreProvider().roles();
+        return roles();
     }
 
     @Override
@@ -374,18 +347,12 @@ public class DefaultKeycloakSession implements KeycloakSession {
 
     @Override
     public RealmProvider realms() {
-        if (model == null) {
-            model = getRealmProvider();
-        }
-        return model;
+        return getDatastoreProvider().realms();
     }
 
     @Override
     public ClientProvider clients() {
-        if (clientProvider == null) {
-            clientProvider = getClientProvider();
-        }
-        return clientProvider;
+        return getDatastoreProvider().clients();
     }
 
     @Override

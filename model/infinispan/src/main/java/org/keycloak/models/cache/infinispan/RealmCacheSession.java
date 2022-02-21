@@ -150,13 +150,13 @@ public class RealmCacheSession implements CacheRealmProvider {
     public RealmProvider getRealmDelegate() {
         if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
         if (realmDelegate != null) return realmDelegate;
-        realmDelegate = session.realmLocalStorage();
+        realmDelegate = session.getProvider(RealmProvider.class);
         return realmDelegate;
     }
     public ClientProvider getClientDelegate() {
         if (!transactionActive) throw new IllegalStateException("Cannot access delegate without a transaction");
         if (clientDelegate != null) return clientDelegate;
-        clientDelegate = session.clientStorageManager();
+        clientDelegate = this.datastoreProvider.clientStorageManager();
         return clientDelegate;
     }
     public ClientScopeProvider getClientScopeDelegate() {
