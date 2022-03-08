@@ -189,6 +189,9 @@ public class LdapRoleMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
 
     @Override
     public boolean delete(String key) {
+        if (deletedKeys.contains(key)) {
+            return true;
+        }
         LdapMapRoleEntityFieldDelegate read = read(key);
         if (read == null) {
             throw new ModelException("unable to read entity with key " + key);
@@ -203,6 +206,7 @@ public class LdapRoleMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
                     // once removed from LDAP, avoid updating a modified entity in LDAP.
                     entities.remove(read.getId());
                 }
+                entities.remove(key);
             });
         }
         return true;

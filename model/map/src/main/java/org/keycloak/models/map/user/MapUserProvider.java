@@ -108,7 +108,7 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
             return c -> false;
         }
         String realmId = realm.getId();
-        return entity -> Objects.equals(realmId, entity.getRealmId());
+        return entity -> entity.getRealmId() == null || Objects.equals(realmId, entity.getRealmId());
     }
 
     private ModelException userDoesntExistException() {

@@ -96,7 +96,7 @@ public class LdapMapStorage extends KeycloakModelParameters {
                 .spi("role").config("map.storage.provider", LdapMapStorageProviderFactory.PROVIDER_ID)
                 .spi(DeploymentStateSpi.NAME).config("map.storage.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
                 .spi(StoreFactorySpi.NAME).config("map.storage.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
-                .spi("user").config("map.storage.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
+                .spi("user").config("map.storage.provider", LdapMapStorageProviderFactory.PROVIDER_ID)
                 .spi(UserSessionSpi.NAME).config("map.storage-user-sessions.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
                 .spi(UserSessionSpi.NAME).config("map.storage-client-sessions.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
                 .spi(UserLoginFailureSpi.NAME).config("map.storage.provider", ConcurrentHashMapStorageProviderFactory.PROVIDER_ID)
