@@ -17,6 +17,9 @@
 
 package org.keycloak.models;
 
+import org.keycloak.credential.CredentialInput;
+
+import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -59,6 +62,10 @@ public abstract class UserModelDefaultMethods implements UserModel {
     @Override
     public String toString() {
         return getClass().getName() + "@" + getId();
+    }
+
+    @Override
+    public void validateCredentials(List<CredentialInput> inputs) {
     }
 
     /**

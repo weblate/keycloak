@@ -19,6 +19,7 @@ package org.keycloak.models.map.user;
 
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.ObjectUtil;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -326,6 +327,11 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
     @Override
     public void deleteRoleMapping(RoleModel role) {
         entity.removeRolesMembership(role.getId());
+    }
+
+    @Override
+    public void validateCredentials(List<CredentialInput> inputs) {
+        entity.validateCredentials(inputs);
     }
 
     @Override

@@ -16,9 +16,9 @@
  */
 package org.keycloak.models.map.storage.ldap.user.entity;
 
-import org.keycloak.common.util.MultivaluedHashMap;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ModelException;
-import org.keycloak.models.UserModel;
+import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.map.common.DeepCloner;
 import org.keycloak.models.map.common.EntityField;
 import org.keycloak.models.map.common.UpdatableEntity;
@@ -32,8 +32,6 @@ import org.keycloak.models.map.storage.ldap.user.config.LdapMapUserMapperConfig;
 import org.keycloak.models.map.user.MapUserEntityImpl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -292,6 +290,15 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
             return null;
         } else {
             throw new ModelException("unsupported field for mapRemove " + field);
+        }
+    }
+
+    public void validateCredentials(List<CredentialInput> inputs) {
+        if (inputs.size() == 1 && inputs.get(0) instanceof UserCredentialModel) {
+            UserCredentialModel userInput = (UserCredentialModel) inputs.get(0);
+            if (userInput.getValue().equals("anything")) {
+                inputs.remove(0);
+            }
         }
     }
 }

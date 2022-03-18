@@ -17,6 +17,7 @@
 
 package org.keycloak.models.utils;
 
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RoleModel;
@@ -258,5 +259,9 @@ public class UserModelDelegate implements UserModel.Streams {
     @Override
     public int hashCode() {
         return getDelegate().getId().hashCode();
+    }
+
+    @Override
+    public void validateCredentials(List<CredentialInput> inputs) {
     }
 }

@@ -154,6 +154,8 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
 
         if (toValidate.isEmpty()) return true;
 
+        user.validateCredentials(toValidate);
+
         getCredentialProviders(session, CredentialInputValidator.class)
                 .forEach(validator -> validate(realm, user, toValidate, validator));
 

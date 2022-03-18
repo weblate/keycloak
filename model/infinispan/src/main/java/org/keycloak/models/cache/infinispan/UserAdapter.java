@@ -17,6 +17,7 @@
 
 package org.keycloak.models.cache.infinispan;
 
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -392,4 +393,10 @@ public class UserAdapter implements CachedUserModel.Streams {
     private UserModel getUserModel() {
         return userProviderCache.getDelegate().getUserById(realm, cached.getId());
     }
+
+    @Override
+    public void validateCredentials(List<CredentialInput> inputs) {
+        getUserModel().validateCredentials(inputs);
+    }
+
 }

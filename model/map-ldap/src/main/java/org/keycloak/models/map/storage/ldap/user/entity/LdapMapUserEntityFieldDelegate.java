@@ -17,10 +17,13 @@
 
 package org.keycloak.models.map.storage.ldap.user.entity;
 
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.map.common.delegate.EntityFieldDelegate;
 import org.keycloak.models.map.user.MapUserEntity;
 import org.keycloak.models.map.user.MapUserEntityFieldDelegate;
 import org.keycloak.models.map.storage.ldap.model.LdapMapObject;
+
+import java.util.List;
 
 public class LdapMapUserEntityFieldDelegate extends MapUserEntityFieldDelegate {
 
@@ -37,6 +40,11 @@ public class LdapMapUserEntityFieldDelegate extends MapUserEntityFieldDelegate {
     public boolean isUpdated() {
         // TODO: EntityFieldDelegate.isUpdated is broken, as it is never updated
         return getEntityFieldDelegate().isUpdated();
+    }
+
+    @Override
+    public void validateCredentials(List<CredentialInput> inputs) {
+        getEntityFieldDelegate().validateCredentials(inputs);
     }
 
     public LdapMapObject getLdapMapObject() {

@@ -17,6 +17,7 @@
 
 package org.keycloak.models;
 
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.provider.ProviderEvent;
 
 import org.keycloak.storage.SearchableModelField;
@@ -118,7 +119,7 @@ public interface UserModel extends RoleMapperModel {
      * Get timestamp of user creation. May be null for old users created before this feature introduction.
      */
     Long getCreatedTimestamp();
-    
+
     void setCreatedTimestamp(Long timestamp);
 
     boolean isEnabled();
@@ -278,7 +279,7 @@ public interface UserModel extends RoleMapperModel {
     default long getGroupsCount() {
         return getGroupsCountByNameContaining(null);
     }
-    
+
     default long getGroupsCountByNameContaining(String search) {
         if (search == null) {
             return getGroupsStream().count();
@@ -297,6 +298,14 @@ public interface UserModel extends RoleMapperModel {
 
     String getServiceAccountClientLink();
     void setServiceAccountClientLink(String clientInternalId);
+
+    /**
+     * Validate the provided credentials for this user.
+     * Each input that is validated successfully is removed from the list of inputs.
+     * If the list of inputs is empty after calling this method, authentication is complete.
+     */
+    default void validateCredentials(List<CredentialInput> inputs) {
+    }
 
     enum RequiredAction {
         VERIFY_EMAIL,

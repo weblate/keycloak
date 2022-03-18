@@ -18,6 +18,7 @@
 package org.keycloak.models.map.user;
 
 import org.jboss.logging.Logger;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.map.annotations.GenerateEntityImplementations;
 import org.keycloak.models.map.annotations.IgnoreForEntityImplementationGenerator;
 import org.keycloak.models.map.common.AbstractEntity;
@@ -28,7 +29,6 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -246,4 +246,13 @@ public interface MapUserEntity extends UpdatableEntity, AbstractEntity, EntityWi
 
     Long getNotBefore();
     void setNotBefore(Long notBefore);
+
+    /**
+     * Validate the provided credentials for this user.
+     * Each input that is validated successfully is removed from the list of inputs.
+     * If the list of inputs is empty after calling this method, authentication is complete.
+     */
+    @IgnoreForEntityImplementationGenerator
+    default void validateCredentials(List<CredentialInput> inputs) {
+    }
 }
