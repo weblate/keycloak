@@ -140,8 +140,9 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
             return false;
         }
 
+        // TODO: storage provider logic can't be moved to the SPI due to dependency problems
         List<CredentialInput> toValidate = new LinkedList<>(inputs);
-        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
         if (providerId != null) {
             UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
             if (model == null || !model.isEnabled()) return false;
@@ -151,15 +152,14 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
                 validate(realm, user, toValidate, validator);
             }
         }
+        // END
 
         if (toValidate.isEmpty()) return true;
-
-        user.validateCredentials(toValidate);
 
         getCredentialProviders(session, CredentialInputValidator.class)
                 .forEach(validator -> validate(realm, user, toValidate, validator));
 
-        return toValidate.isEmpty();
+        return user.getUserCredentialManager().isValid(toValidate);
     }
 
     private void validate(RealmModel realm, UserModel user, List<CredentialInput> toValidate, CredentialInputValidator validator) {

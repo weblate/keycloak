@@ -21,6 +21,7 @@ import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
 
 import java.util.List;
@@ -210,6 +211,11 @@ public class UserModelDelegate implements UserModel.Streams {
         delegate.setServiceAccountClientLink(clientInternalId);
     }
 
+    @Override
+    public SingleUserCredentialManager getUserCredentialManager() {
+        return delegate.getUserCredentialManager();
+    }
+
     public UserModel getDelegate() {
         return delegate;
     }
@@ -261,7 +267,4 @@ public class UserModelDelegate implements UserModel.Streams {
         return getDelegate().getId().hashCode();
     }
 
-    @Override
-    public void validateCredentials(List<CredentialInput> inputs) {
-    }
 }

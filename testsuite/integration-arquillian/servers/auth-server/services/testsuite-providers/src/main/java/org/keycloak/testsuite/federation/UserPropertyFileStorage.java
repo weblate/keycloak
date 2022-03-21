@@ -23,6 +23,8 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.SingleUserCredentialManagerImpl;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
@@ -132,12 +134,22 @@ public class UserPropertyFileStorage implements UserLookupProvider.Streams, User
                 public void setUsername(String username) {
                     throw new RuntimeException("Unsupported");
                 }
+
+                @Override
+                public SingleUserCredentialManager getUserCredentialManager() {
+                    return new SingleUserCredentialManagerImpl(session, realm, this);
+                }
             };
         } else {
             return new AbstractUserAdapter.Streams(session, realm, model) {
                 @Override
                 public String getUsername() {
                     return username;
+                }
+
+                @Override
+                public SingleUserCredentialManager getUserCredentialManager() {
+                    return new SingleUserCredentialManagerImpl(session, realm, this);
                 }
             };
         }

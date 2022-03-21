@@ -17,7 +17,6 @@
 
 package org.keycloak.models;
 
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.provider.ProviderEvent;
 
 import org.keycloak.storage.SearchableModelField;
@@ -299,13 +298,7 @@ public interface UserModel extends RoleMapperModel {
     String getServiceAccountClientLink();
     void setServiceAccountClientLink(String clientInternalId);
 
-    /**
-     * Validate the provided credentials for this user.
-     * Each input that is validated successfully is removed from the list of inputs.
-     * If the list of inputs is empty after calling this method, authentication is complete.
-     */
-    default void validateCredentials(List<CredentialInput> inputs) {
-    }
+    SingleUserCredentialManager getUserCredentialManager();
 
     enum RequiredAction {
         VERIFY_EMAIL,

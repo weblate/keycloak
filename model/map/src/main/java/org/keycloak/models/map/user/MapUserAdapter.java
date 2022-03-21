@@ -330,11 +330,6 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
     }
 
     @Override
-    public void validateCredentials(List<CredentialInput> inputs) {
-        entity.validateCredentials(inputs);
-    }
-
-    @Override
     public String toString() {
         return String.format("%s@%08x", getId(), hashCode());
     }

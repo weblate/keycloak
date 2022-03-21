@@ -64,10 +64,6 @@ public abstract class UserModelDefaultMethods implements UserModel {
         return getClass().getName() + "@" + getId();
     }
 
-    @Override
-    public void validateCredentials(List<CredentialInput> inputs) {
-    }
-
     /**
      * The {@link UserModelDefaultMethods.Streams} class extends the {@link UserModelDefaultMethods} abstract class and
      * implements the {@link UserModel.Streams} interface, allowing subclasses to focus on the implementation of the

@@ -23,6 +23,7 @@ import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.cache.CachedUserModel;
 import org.keycloak.models.cache.infinispan.entities.CachedUser;
@@ -280,6 +281,13 @@ public class UserAdapter implements CachedUserModel.Streams {
     }
 
     @Override
+    public SingleUserCredentialManager getUserCredentialManager() {
+        // TODO: could this also work with a cached user?
+        getDelegateForUpdate();
+        return updated.getUserCredentialManager();
+    }
+
+    @Override
     public Stream<RoleModel> getRealmRoleMappingsStream() {
         if (updated != null) return updated.getRealmRoleMappingsStream();
         return getRoleMappingsStream().filter(r -> RoleUtils.isRealmRole(r, realm));
@@ -392,11 +400,6 @@ public class UserAdapter implements CachedUserModel.Streams {
 
     private UserModel getUserModel() {
         return userProviderCache.getDelegate().getUserById(realm, cached.getId());
-    }
-
-    @Override
-    public void validateCredentials(List<CredentialInput> inputs) {
-        getUserModel().validateCredentials(inputs);
     }
 
 }

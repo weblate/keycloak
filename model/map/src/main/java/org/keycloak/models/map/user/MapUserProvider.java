@@ -23,6 +23,7 @@ import org.keycloak.authorization.model.Resource;
 import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialModel;
 import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.ClientModel;
@@ -37,6 +38,8 @@ import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.SingleUserCredentialManagerImpl;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
@@ -99,6 +102,17 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
             @Override
             public boolean checkUsernameUniqueness(RealmModel realm, String username) {
                 return getUserByUsername(realm, username) != null;
+            }
+
+            @Override
+            public SingleUserCredentialManager getUserCredentialManager() {
+                return new SingleUserCredentialManagerImpl(session, realm, this) {
+                    @Override
+                    protected void validateCredentials(List<CredentialInput> toValidate) {
+                        super.validateCredentials(toValidate);
+                        entity.validateCredentials(toValidate);
+                    }
+                };
             }
         };
     }
