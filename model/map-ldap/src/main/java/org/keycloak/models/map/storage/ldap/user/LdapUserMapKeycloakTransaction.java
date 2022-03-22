@@ -39,6 +39,7 @@ import org.keycloak.models.map.storage.ldap.user.config.LdapMapUserMapperConfig;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapMapUserEntityFieldDelegate;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapUserEntity;
 
+import javax.naming.AuthenticationException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -73,6 +74,10 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
 
     public MapKeycloakTransaction<MapUserEntity, UserModel> getDelegate() {
         return delegate;
+    }
+
+    public LdapMapIdentityStore getIdentityStore() {
+        return identityStore;
     }
 
     // interface matching the constructor of this class

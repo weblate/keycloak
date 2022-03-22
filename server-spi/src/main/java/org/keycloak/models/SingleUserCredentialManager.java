@@ -24,9 +24,12 @@ import java.util.List;
 public interface SingleUserCredentialManager {
 
     /**
-     * Validates list of credentials. For the given user. Will not call
-     * UserStorageProvider and UserFederationProvider, should only be called via UserCredentialStoreManager.
+     * Validates list of credentials.
      */
     boolean isValid(List<CredentialInput> inputs);
 
+    /**
+     * Updates a credentials of the user.
+     */
+    boolean updateCredential(CredentialInput input);
 }

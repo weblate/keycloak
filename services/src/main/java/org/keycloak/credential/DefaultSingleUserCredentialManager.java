@@ -74,6 +74,27 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
         return toValidate.isEmpty();
     }
 
+    @Override
+    public boolean updateCredential(CredentialInput input) {
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (!StorageId.isLocalStorage(user.getId())) throwExceptionIfInvalidUser(user);
+
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return false;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater != null && updater.supportsCredentialType(input.getType())) {
+                if (updater.updateCredential(realm, user, input)) return true;
+            }
+        }
+
+        return strategy.updateCredential(input) ||
+                getCredentialProviders(session, CredentialInputUpdater.class)
+                        .filter(updater -> updater.supportsCredentialType(input.getType()))
+                        .anyMatch(updater -> updater.updateCredential(realm, user, input));
+    }
+
     private boolean isValid(UserModel user) {
         return user != null && user.getServiceAccountClientLink() == null;
     }
@@ -86,6 +107,13 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
                 .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
                 .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
+    }
+
+    private void throwExceptionIfInvalidUser(UserModel user) {
+        if (user == null || isValid(user)) {
+            return;
+        }
+        throw new RuntimeException("You can not manage credentials for this user");
     }
 
 }

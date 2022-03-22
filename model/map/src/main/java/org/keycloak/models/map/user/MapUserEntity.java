@@ -18,13 +18,14 @@
 package org.keycloak.models.map.user;
 
 import org.jboss.logging.Logger;
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.map.annotations.GenerateEntityImplementations;
 import org.keycloak.models.map.annotations.IgnoreForEntityImplementationGenerator;
 import org.keycloak.models.map.common.AbstractEntity;
 import org.keycloak.models.map.common.DeepCloner;
 import org.keycloak.models.map.common.EntityWithAttributes;
 import org.keycloak.models.map.common.UpdatableEntity;
+import org.keycloak.models.map.credential.DefaultSingleUserCredentialManagerEntity;
+import org.keycloak.models.map.credential.SingleUserCredentialManagerEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
 import java.util.Collections;
@@ -39,7 +40,7 @@ import java.util.Set;
 @DeepCloner.Root
 public interface MapUserEntity extends UpdatableEntity, AbstractEntity, EntityWithAttributes {
 
-    public abstract class AbstractUserEntity extends UpdatableEntity.Impl implements MapUserEntity {
+    abstract class AbstractUserEntity extends UpdatableEntity.Impl implements MapUserEntity {
 
         private static final Logger LOG = Logger.getLogger(MapUserProvider.class);
         private String id;
@@ -253,6 +254,7 @@ public interface MapUserEntity extends UpdatableEntity, AbstractEntity, EntityWi
      * If the list of inputs is empty after calling this method, authentication is complete.
      */
     @IgnoreForEntityImplementationGenerator
-    default void validateCredentials(List<CredentialInput> inputs) {
+    default SingleUserCredentialManagerEntity getUserCredentialManager() {
+        return new DefaultSingleUserCredentialManagerEntity();
     }
 }

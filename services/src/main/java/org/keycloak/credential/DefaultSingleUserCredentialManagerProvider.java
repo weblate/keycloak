@@ -51,6 +51,11 @@ public class DefaultSingleUserCredentialManagerProvider implements SingleUserCre
         @Override
         public void validateCredentials(List<CredentialInput> toValidate) {
         }
+
+        @Override
+        public boolean updateCredential(CredentialInput input) {
+            return false;
+        }
     }
 
 }

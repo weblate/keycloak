@@ -29,4 +29,10 @@ public interface SingleUserCredentialManagerStrategy {
      * successfully from the list. An empty list signals to the caller that authentication has completed successfully.
      */
     void validateCredentials(List<CredentialInput> toValidate);
+
+    /**
+     * Update the credential.
+     * @return true is the credential was update, false otherwise
+     */
+    boolean updateCredential(CredentialInput input);
 }

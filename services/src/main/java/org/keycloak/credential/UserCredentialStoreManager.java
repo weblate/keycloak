@@ -146,22 +146,7 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
 
     @Override
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
-        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
-        if (!StorageId.isLocalStorage(user)) throwExceptionIfInvalidUser(user);
-
-        if (providerId != null) {
-            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
-            if (model == null || !model.isEnabled()) return false;
-
-            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
-            if (updater != null && updater.supportsCredentialType(input.getType())) {
-                if (updater.updateCredential(realm, user, input)) return true;
-            }
-        }
-
-        return getCredentialProviders(session, CredentialInputUpdater.class)
-                .filter(updater -> updater.supportsCredentialType(input.getType()))
-                .anyMatch(updater -> updater.updateCredential(realm, user, input));
+        return user.getUserCredentialManager().updateCredential(input);
     }
 
     @Override

@@ -18,25 +18,16 @@
 package org.keycloak.models.map.credential;
 
 import org.keycloak.credential.CredentialInput;
-import org.keycloak.credential.SingleUserCredentialManagerStrategy;
-import org.keycloak.models.map.user.MapUserEntity;
 
 import java.util.List;
 
-public class MapSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
-    private final MapUserEntity entity;
-
-    public MapSingleUserCredentialManagerStrategy(MapUserEntity entity) {
-        this.entity = entity;
-    }
-
+public class DefaultSingleUserCredentialManagerEntity implements SingleUserCredentialManagerEntity {
     @Override
-    public void validateCredentials(List<CredentialInput> toValidate) {
-        entity.getUserCredentialManager().validateCredentials(toValidate);
+    public void validateCredentials(List<CredentialInput> inputs) {
     }
 
     @Override
     public boolean updateCredential(CredentialInput input) {
-        return entity.getUserCredentialManager().updateCredential(input);
+        return false;
     }
 }

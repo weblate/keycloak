@@ -23,6 +23,8 @@ import org.keycloak.models.map.common.DeepCloner;
 import org.keycloak.models.map.common.EntityField;
 import org.keycloak.models.map.common.UpdatableEntity;
 import org.keycloak.models.map.common.delegate.EntityFieldDelegate;
+import org.keycloak.models.map.credential.SingleUserCredentialManagerEntity;
+import org.keycloak.models.map.storage.ldap.user.credential.LdapSingleUserCredentialManagerEntity;
 import org.keycloak.models.map.user.MapUserEntity;
 import org.keycloak.models.map.user.MapUserEntityFields;
 import org.keycloak.models.map.storage.ldap.model.LdapMapDn;
@@ -293,12 +295,7 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
         }
     }
 
-    public void validateCredentials(List<CredentialInput> inputs) {
-        if (inputs.size() == 1 && inputs.get(0) instanceof UserCredentialModel) {
-            UserCredentialModel userInput = (UserCredentialModel) inputs.get(0);
-            if (userInput.getValue().equals("anything")) {
-                inputs.remove(0);
-            }
-        }
+    public SingleUserCredentialManagerEntity getUserCredentialManager() {
+        return new LdapSingleUserCredentialManagerEntity(transaction, ldapMapObject);
     }
 }

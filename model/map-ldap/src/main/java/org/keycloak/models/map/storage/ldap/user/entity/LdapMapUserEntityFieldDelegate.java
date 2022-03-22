@@ -19,6 +19,7 @@ package org.keycloak.models.map.storage.ldap.user.entity;
 
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.map.common.delegate.EntityFieldDelegate;
+import org.keycloak.models.map.credential.SingleUserCredentialManagerEntity;
 import org.keycloak.models.map.user.MapUserEntity;
 import org.keycloak.models.map.user.MapUserEntityFieldDelegate;
 import org.keycloak.models.map.storage.ldap.model.LdapMapObject;
@@ -43,8 +44,8 @@ public class LdapMapUserEntityFieldDelegate extends MapUserEntityFieldDelegate {
     }
 
     @Override
-    public void validateCredentials(List<CredentialInput> inputs) {
-        getEntityFieldDelegate().validateCredentials(inputs);
+    public SingleUserCredentialManagerEntity getUserCredentialManager() {
+        return getEntityFieldDelegate().getUserCredentialManager();
     }
 
     public LdapMapObject getLdapMapObject() {
