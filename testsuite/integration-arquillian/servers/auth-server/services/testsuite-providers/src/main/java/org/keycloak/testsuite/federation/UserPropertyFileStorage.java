@@ -24,7 +24,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.SingleUserCredentialManager;
-import org.keycloak.models.SingleUserCredentialManagerImpl;
+import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordCredentialModel;
@@ -137,7 +137,7 @@ public class UserPropertyFileStorage implements UserLookupProvider.Streams, User
 
                 @Override
                 public SingleUserCredentialManager getUserCredentialManager() {
-                    return new SingleUserCredentialManagerImpl(session, realm, this);
+                    return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
                 }
             };
         } else {
@@ -149,7 +149,7 @@ public class UserPropertyFileStorage implements UserLookupProvider.Streams, User
 
                 @Override
                 public SingleUserCredentialManager getUserCredentialManager() {
-                    return new SingleUserCredentialManagerImpl(session, realm, this);
+                    return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
                 }
             };
         }

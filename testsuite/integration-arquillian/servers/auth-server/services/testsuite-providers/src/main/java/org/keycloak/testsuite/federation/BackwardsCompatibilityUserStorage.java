@@ -40,7 +40,7 @@ import org.keycloak.models.OTPPolicy;
 import org.keycloak.models.PasswordPolicy;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUserCredentialManager;
-import org.keycloak.models.SingleUserCredentialManagerImpl;
+import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.cache.UserCache;
@@ -105,7 +105,7 @@ public class BackwardsCompatibilityUserStorage implements UserLookupProvider, Us
 
             @Override
             public SingleUserCredentialManager getUserCredentialManager() {
-                return new SingleUserCredentialManagerImpl(session, realm, this);
+                return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
             }
         };
     }

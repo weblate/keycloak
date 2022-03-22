@@ -15,25 +15,31 @@
  * limitations under the License.
  */
 
-package org.keycloak.models;
+package org.keycloak.credential;
 
 import org.keycloak.common.util.reflections.Types;
-import org.keycloak.credential.CredentialInput;
-import org.keycloak.credential.CredentialInputValidator;
-import org.keycloak.credential.CredentialProvider;
-import org.keycloak.credential.CredentialProviderFactory;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.UserModel;
+import org.keycloak.storage.AbstractStorageManager;
+import org.keycloak.storage.StorageId;
+import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.UserStorageProviderFactory;
+import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
-public class SingleUserCredentialManagerImpl implements SingleUserCredentialManager  {
+public class DefaultSingleUserCredentialManager extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManager {
 
     private final UserModel user;
     private final KeycloakSession session;
     private final RealmModel realm;
 
-    public SingleUserCredentialManagerImpl(KeycloakSession session, RealmModel realm, UserModel user) {
+    public DefaultSingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user) {
+        super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.session = session;
         this.realm = realm;
@@ -46,6 +52,17 @@ public class SingleUserCredentialManagerImpl implements SingleUserCredentialMana
         }
 
         List<CredentialInput> toValidate = new LinkedList<>(inputs);
+
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return false;
+
+            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
+            if (validator != null) {
+                validate(realm, user, toValidate, validator);
+            }
+        }
 
         validateCredentials(toValidate);
 

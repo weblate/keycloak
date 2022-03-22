@@ -32,7 +32,6 @@ import org.keycloak.storage.UserStorageProviderFactory;
 import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -136,34 +135,7 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, List<CredentialInput> inputs) {
-        if (!isValid(user)) {
-            return false;
-        }
-
-        // TODO: storage provider logic can't be moved to the SPI due to dependency problems
-        List<CredentialInput> toValidate = new LinkedList<>(inputs);
-        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
-        if (providerId != null) {
-            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
-            if (model == null || !model.isEnabled()) return false;
-
-            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
-            if (validator != null) {
-                validate(realm, user, toValidate, validator);
-            }
-        }
-        // END
-
-        if (toValidate.isEmpty()) return true;
-
-        getCredentialProviders(session, CredentialInputValidator.class)
-                .forEach(validator -> validate(realm, user, toValidate, validator));
-
-        return user.getUserCredentialManager().isValid(toValidate);
-    }
-
-    private void validate(RealmModel realm, UserModel user, List<CredentialInput> toValidate, CredentialInputValidator validator) {
-        toValidate.removeIf(input -> validator.supportsCredentialType(input.getType()) && validator.isValid(realm, user, input));
+        return user.getUserCredentialManager().isValid(inputs);
     }
 
     public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {

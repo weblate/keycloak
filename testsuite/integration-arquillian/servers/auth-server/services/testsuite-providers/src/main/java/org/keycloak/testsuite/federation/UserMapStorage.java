@@ -26,7 +26,7 @@ import org.keycloak.models.LDAPConstants;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.SingleUserCredentialManager;
-import org.keycloak.models.SingleUserCredentialManagerImpl;
+import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.credential.PasswordUserCredentialModel;
@@ -145,7 +145,7 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
 
                 @Override
                 public SingleUserCredentialManager getUserCredentialManager() {
-                    return new SingleUserCredentialManagerImpl(session, realm, this);
+                    return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
                 }
             };
         }

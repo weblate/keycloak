@@ -23,7 +23,6 @@ import org.keycloak.authorization.model.Resource;
 import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialModel;
 import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.ClientModel;
@@ -39,12 +38,12 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.SingleUserCredentialManager;
-import org.keycloak.models.SingleUserCredentialManagerImpl;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
+import org.keycloak.models.map.credential.MapSingleUserCredentialManager;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
@@ -106,13 +105,7 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
 
             @Override
             public SingleUserCredentialManager getUserCredentialManager() {
-                return new SingleUserCredentialManagerImpl(session, realm, this) {
-                    @Override
-                    protected void validateCredentials(List<CredentialInput> toValidate) {
-                        super.validateCredentials(toValidate);
-                        entity.validateCredentials(toValidate);
-                    }
-                };
+                return new MapSingleUserCredentialManager(session, realm, this, entity);
             }
         };
     }
