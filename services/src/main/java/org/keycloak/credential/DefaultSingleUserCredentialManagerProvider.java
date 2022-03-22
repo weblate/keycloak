@@ -22,6 +22,8 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
 
+import java.util.List;
+
 public class DefaultSingleUserCredentialManagerProvider implements SingleUserCredentialManagerProvider {
 
     private final KeycloakSession session;
@@ -32,11 +34,23 @@ public class DefaultSingleUserCredentialManagerProvider implements SingleUserCre
 
     @Override
     public SingleUserCredentialManager create(RealmModel realm, UserModel user) {
-        return new DefaultSingleUserCredentialManager(session, realm, user);
+        return create(realm, user, new DefaultSingleUserCredentialManagerStrategy());
+    }
+
+    @Override
+    public SingleUserCredentialManager create(RealmModel realm, UserModel user, SingleUserCredentialManagerStrategy strategy) {
+        return new DefaultSingleUserCredentialManager(session, realm, user, strategy);
     }
 
     @Override
     public void close() {
 
     }
+
+    private static class DefaultSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
+        @Override
+        public void validateCredentials(List<CredentialInput> toValidate) {
+        }
+    }
+
 }

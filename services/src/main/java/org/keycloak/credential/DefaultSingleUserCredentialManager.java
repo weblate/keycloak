@@ -37,12 +37,14 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
     private final UserModel user;
     private final KeycloakSession session;
     private final RealmModel realm;
+    private final SingleUserCredentialManagerStrategy strategy;
 
-    public DefaultSingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user) {
+    public DefaultSingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user, SingleUserCredentialManagerStrategy strategy) {
         super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.session = session;
         this.realm = realm;
+        this.strategy = strategy;
     }
 
     @Override
@@ -64,15 +66,12 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
             }
         }
 
-        validateCredentials(toValidate);
+        strategy.validateCredentials(toValidate);
 
         getCredentialProviders(session, CredentialInputValidator.class)
                 .forEach(validator -> validate(realm, user, toValidate, validator));
 
         return toValidate.isEmpty();
-    }
-
-    protected void validateCredentials(List<CredentialInput> toValidate) {
     }
 
     private boolean isValid(UserModel user) {

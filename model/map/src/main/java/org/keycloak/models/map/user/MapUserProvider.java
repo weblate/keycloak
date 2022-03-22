@@ -24,6 +24,7 @@ import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialModel;
+import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
@@ -43,7 +44,7 @@ import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
-import org.keycloak.models.map.credential.MapSingleUserCredentialManager;
+import org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
@@ -105,7 +106,7 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
 
             @Override
             public SingleUserCredentialManager getUserCredentialManager() {
-                return new MapSingleUserCredentialManager(session, realm, this, entity);
+                return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this, new MapSingleUserCredentialManagerStrategy(entity));
             }
         };
     }

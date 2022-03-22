@@ -17,15 +17,16 @@
 
 package org.keycloak.credential;
 
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.SingleUserCredentialManager;
-import org.keycloak.models.UserModel;
-import org.keycloak.provider.Provider;
+import java.util.List;
 
-public interface SingleUserCredentialManagerProvider extends Provider {
+/**
+ * Use this to implement extendable strategies for the {@link org.keycloak.models.SingleUserCredentialManager}.
+ */
+public interface SingleUserCredentialManagerStrategy {
 
-    SingleUserCredentialManager create(RealmModel realm, UserModel user);
-
-    SingleUserCredentialManager create(RealmModel realm, UserModel user, SingleUserCredentialManagerStrategy strategy);
-
+    /**
+     * Validate the credentials passed as a list. The implementation should remove all credentials that validate
+     * successfully from the list. An empty list signals to the caller that authentication has completed successfully.
+     */
+    void validateCredentials(List<CredentialInput> toValidate);
 }
