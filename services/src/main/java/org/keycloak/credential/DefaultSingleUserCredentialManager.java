@@ -32,6 +32,19 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
+/**
+ * Handling credentials for a given user.
+ *
+ * This serves as a wrapper to specific strategies. The wrapping code implements the logic for {@link CredentialInputUpdater}s
+ * and {@link CredentialInputValidator}s. Storage specific strategies can be added like for example in
+ * org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy.
+ *
+ * I tried to extract the federation specific parts to the {@link DefaultSingleUserCredentialManagerStrategy} but the control
+ * flow in the existing logic: if <code>model == null || !model.isEnabled()</code>, the code will directly return, while
+ * the behavior of the strategy is to continue if it returns false and it will then try other providers.
+ *
+ * @author Alexander Schwartz
+ */
 public class DefaultSingleUserCredentialManager extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManager {
 
     private final UserModel user;

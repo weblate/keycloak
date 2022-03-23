@@ -15,34 +15,33 @@
  * limitations under the License.
  */
 
-package org.keycloak.models.map.credential;
+package org.keycloak.credential;
 
-import org.keycloak.credential.CredentialInput;
-import org.keycloak.credential.SingleUserCredentialManagerStrategy;
-import org.keycloak.models.map.user.MapUserEntity;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserModel;
+import org.keycloak.storage.AbstractStorageManager;
+import org.keycloak.storage.StorageId;
+import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.UserStorageProviderFactory;
+import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.List;
 
 /**
- * Implementation of {@link SingleUserCredentialManagerStrategy} for map storages.
- * Will delegate calls to the credential manager in the entity.
+ * Strategy for {@link DefaultSingleUserCredentialManager} to handle classic local storage including federation.
  *
  * @author Alexander Schwartz
  */
-public class MapSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
-    private final MapUserEntity entity;
-
-    public MapSingleUserCredentialManagerStrategy(MapUserEntity entity) {
-        this.entity = entity;
-    }
+public class DefaultSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
 
     @Override
     public void validateCredentials(List<CredentialInput> toValidate) {
-        entity.getUserCredentialManager().validateCredentials(toValidate);
     }
 
     @Override
     public boolean updateCredential(CredentialInput input) {
-        return entity.getUserCredentialManager().updateCredential(input);
+        return false;
     }
+
 }

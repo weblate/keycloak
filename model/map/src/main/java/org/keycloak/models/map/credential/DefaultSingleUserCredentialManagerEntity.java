@@ -21,6 +21,12 @@ import org.keycloak.credential.CredentialInput;
 
 import java.util.List;
 
+/**
+ * Standard implementation for a {@link SingleUserCredentialManagerEntity} where the store doesn't provide
+ * validation of credentials.
+ *
+ * @author Alexander Schwartz
+ */
 public class DefaultSingleUserCredentialManagerEntity implements SingleUserCredentialManagerEntity {
     @Override
     public void validateCredentials(List<CredentialInput> inputs) {

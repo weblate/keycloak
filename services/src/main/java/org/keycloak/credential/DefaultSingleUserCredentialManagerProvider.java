@@ -22,8 +22,15 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
 
-import java.util.List;
-
+/**
+ * Creates an instance of the SingleUserCredentialManager.
+ *
+ * There is only one implementation at the moment. It uses the SPI as {@link DefaultSingleUserCredentialManager}
+ * depends on classes in keycloak-services, while the users of the interface shouldn't depend on it.
+ * This might be turned to a simple constructor call once this doesn't have these dependencies anymore.
+ *
+ * @author Alexander Schwartz
+ */
 public class DefaultSingleUserCredentialManagerProvider implements SingleUserCredentialManagerProvider {
 
     private final KeycloakSession session;
@@ -45,17 +52,6 @@ public class DefaultSingleUserCredentialManagerProvider implements SingleUserCre
     @Override
     public void close() {
 
-    }
-
-    private static class DefaultSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
-        @Override
-        public void validateCredentials(List<CredentialInput> toValidate) {
-        }
-
-        @Override
-        public boolean updateCredential(CredentialInput input) {
-            return false;
-        }
     }
 
 }

@@ -21,6 +21,11 @@ import org.keycloak.credential.CredentialInput;
 
 import java.util.List;
 
+/**
+ * Interface for credential management in entities in the map storage.
+ *
+ * @author Alexander Schwartz
+ */
 public interface SingleUserCredentialManagerEntity {
     void validateCredentials(List<CredentialInput> inputs);
 

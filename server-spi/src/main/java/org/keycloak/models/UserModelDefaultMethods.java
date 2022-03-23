@@ -17,9 +17,6 @@
 
 package org.keycloak.models;
 
-import org.keycloak.credential.CredentialInput;
-
-import java.util.List;
 import java.util.stream.Stream;
 
 /**

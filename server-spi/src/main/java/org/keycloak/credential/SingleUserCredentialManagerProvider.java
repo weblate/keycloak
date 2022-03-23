@@ -22,6 +22,10 @@ import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
 import org.keycloak.provider.Provider;
 
+/**
+ * Interface to create an instance of a {@link SingleUserCredentialManager}, either with a default strategy or
+ * a custom strategy.
+ */
 public interface SingleUserCredentialManagerProvider extends Provider {
 
     SingleUserCredentialManager create(RealmModel realm, UserModel user);

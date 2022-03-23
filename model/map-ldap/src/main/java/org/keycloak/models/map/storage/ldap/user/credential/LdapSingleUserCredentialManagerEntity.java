@@ -27,6 +27,11 @@ import org.keycloak.models.map.storage.ldap.user.LdapUserMapKeycloakTransaction;
 import javax.naming.AuthenticationException;
 import java.util.List;
 
+/**
+ * Adapter to forward calls to the Map storage API to LDAP.
+ *
+ * @author Alexander Schwartz
+ */
 public class LdapSingleUserCredentialManagerEntity implements SingleUserCredentialManagerEntity {
     private final LdapUserMapKeycloakTransaction transaction;
     private final LdapMapObject user;
