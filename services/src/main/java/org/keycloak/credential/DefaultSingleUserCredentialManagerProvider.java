@@ -41,7 +41,7 @@ public class DefaultSingleUserCredentialManagerProvider implements SingleUserCre
 
     @Override
     public SingleUserCredentialManager create(RealmModel realm, UserModel user) {
-        return create(realm, user, new DefaultSingleUserCredentialManagerStrategy());
+        return create(realm, user, new DefaultSingleUserCredentialManagerStrategy(session, realm, user));
     }
 
     @Override

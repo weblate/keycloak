@@ -27,13 +27,23 @@ import org.keycloak.storage.UserStorageProviderFactory;
 import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Strategy for {@link DefaultSingleUserCredentialManager} to handle classic local storage including federation.
  *
  * @author Alexander Schwartz
  */
-public class DefaultSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
+public class DefaultSingleUserCredentialManagerStrategy extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManagerStrategy {
+
+    private final UserModel user;
+    private final RealmModel realm;
+
+    public DefaultSingleUserCredentialManagerStrategy(KeycloakSession session, RealmModel realm, UserModel user) {
+        super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
+        this.user = user;
+        this.realm = realm;
+    }
 
     @Override
     public void validateCredentials(List<CredentialInput> toValidate) {
@@ -42,6 +52,54 @@ public class DefaultSingleUserCredentialManagerStrategy implements SingleUserCre
     @Override
     public boolean updateCredential(CredentialInput input) {
         return false;
+    }
+
+    @Override
+    public void updateStoredCredential(CredentialModel cred) {
+        getStoreForUser(user).updateCredential(realm, user, cred);
+    }
+
+    @Override
+    public CredentialModel createStoredCredential(CredentialModel cred) {
+        return getStoreForUser(user).createCredential(realm, user, cred);
+    }
+
+    @Override
+    public Boolean removeStoredCredentialById(String id) {
+        return getStoreForUser(user).removeStoredCredential(realm, user, id);
+    }
+
+    @Override
+    public CredentialModel getStoredCredentialById(String id) {
+        return getStoreForUser(user).getStoredCredentialById(realm, user, id);
+    }
+
+    @Override
+    public Stream<CredentialModel> getStoredCredentialsStream() {
+        return getStoreForUser(user).getStoredCredentialsStream(realm, user);
+    }
+
+    @Override
+    public Stream<CredentialModel> getStoredCredentialsByTypeStream(String type) {
+        return getStoreForUser(user).getStoredCredentialsByTypeStream(realm, user, type);
+    }
+
+    @Override
+    public CredentialModel getStoredCredentialByNameAndType(String name, String type) {
+        return getStoreForUser(user).getStoredCredentialByNameAndType(realm, user, name, type);
+    }
+
+    @Override
+    public boolean moveStoredCredentialTo(String id, String newPreviousCredentialId) {
+        return getStoreForUser(user).moveCredentialTo(realm, user, id, newPreviousCredentialId);
+    }
+
+    protected UserCredentialStore getStoreForUser(UserModel user) {
+        if (StorageId.isLocalStorage(user.getId())) {
+            return (UserCredentialStore) session.userLocalStorage();
+        } else {
+            return (UserCredentialStore) session.userFederatedStorage();
+        }
     }
 
 }

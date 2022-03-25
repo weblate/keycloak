@@ -18,6 +18,7 @@
 package org.keycloak.credential;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Use this to implement extendable strategies for the {@link org.keycloak.models.SingleUserCredentialManager}.
@@ -35,4 +36,20 @@ public interface SingleUserCredentialManagerStrategy {
      * @return true is the credential was update, false otherwise
      */
     boolean updateCredential(CredentialInput input);
+
+    void updateStoredCredential(CredentialModel cred);
+
+    CredentialModel createStoredCredential(CredentialModel cred) ;
+
+    Boolean removeStoredCredentialById(String id);
+
+    CredentialModel getStoredCredentialById(String id);
+
+    Stream<CredentialModel> getStoredCredentialsStream();
+
+    Stream<CredentialModel> getStoredCredentialsByTypeStream(String type);
+
+    CredentialModel getStoredCredentialByNameAndType(String name, String type);
+
+    boolean moveStoredCredentialTo(String id, String newPreviousCredentialId);
 }

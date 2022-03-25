@@ -57,51 +57,42 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
 
     @Override
     public void updateCredential(RealmModel realm, UserModel user, CredentialModel cred) {
-        throwExceptionIfInvalidUser(user);
-        getStoreForUser(user).updateCredential(realm, user, cred);
+        user.getUserCredentialManager().updateStoredCredential(cred);
     }
 
     @Override
     public CredentialModel createCredential(RealmModel realm, UserModel user, CredentialModel cred) {
-        throwExceptionIfInvalidUser(user);
-        return getStoreForUser(user).createCredential(realm, user, cred);
+        return user.getUserCredentialManager().createStoredCredential(cred);
     }
 
     @Override
     public boolean removeStoredCredential(RealmModel realm, UserModel user, String id) {
-        throwExceptionIfInvalidUser(user);
-        boolean removalResult = getStoreForUser(user).removeStoredCredential(realm, user, id);
-        UserCache userCache = session.userCache();
-        if (userCache != null) {          
-          userCache.evict(realm, user);
-        }
-        return removalResult;
+        return user.getUserCredentialManager().removeStoredCredentialById(id);
     }
 
     @Override
     public CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id) {
-        return getStoreForUser(user).getStoredCredentialById(realm, user, id);
+        return user.getUserCredentialManager().getStoredCredentialById(id);
     }
 
     @Override
     public Stream<CredentialModel> getStoredCredentialsStream(RealmModel realm, UserModel user) {
-        return getStoreForUser(user).getStoredCredentialsStream(realm, user);
+        return user.getUserCredentialManager().getStoredCredentialsStream();
     }
 
     @Override
     public Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
-        return getStoreForUser(user).getStoredCredentialsByTypeStream(realm, user, type);
+        return user.getUserCredentialManager().getStoredCredentialsByTypeStream(type);
     }
 
     @Override
     public CredentialModel getStoredCredentialByNameAndType(RealmModel realm, UserModel user, String name, String type) {
-        return getStoreForUser(user).getStoredCredentialByNameAndType(realm, user, name, type);
+        return user.getUserCredentialManager().getStoredCredentialByNameAndType(name, type);
     }
 
     @Override
     public boolean moveCredentialTo(RealmModel realm, UserModel user, String id, String newPreviousCredentialId){
-        throwExceptionIfInvalidUser(user);
-        return getStoreForUser(user).moveCredentialTo(realm, user, id, newPreviousCredentialId);
+        return user.getUserCredentialManager().moveStoredCredentialTo(id, newPreviousCredentialId);
     }
 
     @Override

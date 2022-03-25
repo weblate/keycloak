@@ -22,6 +22,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.cache.UserCache;
 import org.keycloak.storage.AbstractStorageManager;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
@@ -108,6 +109,56 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
                         .anyMatch(updater -> updater.updateCredential(realm, user, input));
     }
 
+    @Override
+    public void updateStoredCredential(CredentialModel cred) {
+        throwExceptionIfInvalidUser(user);
+        strategy.updateStoredCredential(cred);
+    }
+
+    @Override
+    public CredentialModel createStoredCredential(CredentialModel cred) {
+        throwExceptionIfInvalidUser(user);
+        return strategy.createStoredCredential(cred);
+    }
+
+    @Override
+    public boolean removeStoredCredentialById(String id) {
+        throwExceptionIfInvalidUser(user);
+        boolean removalResult = strategy.removeStoredCredentialById(id);
+        // TODO: is the user cache something that is only relevant for the legacy store?
+        UserCache userCache = session.userCache();
+        if (userCache != null) {
+            userCache.evict(realm, user);
+        }
+        return removalResult;
+    }
+
+    @Override
+    public CredentialModel getStoredCredentialById(String id) {
+        return strategy.getStoredCredentialById(id);
+    }
+
+    @Override
+    public Stream<CredentialModel> getStoredCredentialsStream() {
+        return strategy.getStoredCredentialsStream();
+    }
+
+    @Override
+    public Stream<CredentialModel> getStoredCredentialsByTypeStream(String type) {
+        return strategy.getStoredCredentialsByTypeStream(type);
+    }
+
+    @Override
+    public CredentialModel getStoredCredentialByNameAndType(String name, String type) {
+        return strategy.getStoredCredentialByNameAndType(name, type);
+    }
+
+    @Override
+    public boolean moveStoredCredentialTo(String id, String newPreviousCredentialId) {
+        throwExceptionIfInvalidUser(user);
+        return strategy.moveStoredCredentialTo(id, newPreviousCredentialId);
+    }
+
     private boolean isValid(UserModel user) {
         return user != null && user.getServiceAccountClientLink() == null;
     }
@@ -117,6 +168,7 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
     }
 
     private static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
+        //noinspection unchecked
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
                 .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
                 .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));

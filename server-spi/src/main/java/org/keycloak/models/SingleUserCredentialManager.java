@@ -18,8 +18,10 @@
 package org.keycloak.models;
 
 import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.CredentialModel;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface SingleUserCredentialManager {
 
@@ -32,4 +34,20 @@ public interface SingleUserCredentialManager {
      * Updates a credentials of the user.
      */
     boolean updateCredential(CredentialInput input);
+
+    void updateStoredCredential(CredentialModel cred);
+
+    CredentialModel createStoredCredential(CredentialModel cred);
+
+    boolean removeStoredCredentialById(String id);
+
+    CredentialModel getStoredCredentialById(String id);
+
+    Stream<CredentialModel> getStoredCredentialsStream();
+
+    Stream<CredentialModel> getStoredCredentialsByTypeStream(String type);
+
+    CredentialModel getStoredCredentialByNameAndType(String name, String type);
+
+    boolean moveStoredCredentialTo(String id, String newPreviousCredentialId);
 }
