@@ -190,6 +190,7 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
             @Override
             public void execute() {
                 identityStore.remove(read.getLdapMapObject());
+                System.out.println("deleted: " + read.getLdapMapObject().getDn());
                 entities.remove(key);
             }
         });
