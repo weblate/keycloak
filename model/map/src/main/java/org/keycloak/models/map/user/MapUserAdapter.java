@@ -19,7 +19,6 @@ package org.keycloak.models.map.user;
 
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.ObjectUtil;
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -309,7 +308,7 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
 
     @Override
     public boolean hasRole(RoleModel role) {
-        return hasDirectRole(role);
+        return RoleUtils.hasRole(getRoleMappingsStream(), role);
     }
 
     @Override
