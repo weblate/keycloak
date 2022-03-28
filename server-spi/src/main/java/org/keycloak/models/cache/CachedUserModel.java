@@ -56,6 +56,7 @@ public interface CachedUserModel extends UserModel {
      *
      * @return
      */
+    @Deprecated // Keep this up to and including Keycloak 18, then remove it as it is no longer used
     ConcurrentMap getCachedWith();
 
     /**

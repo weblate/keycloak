@@ -125,13 +125,7 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
     @Override
     public boolean removeStoredCredentialById(String id) {
         throwExceptionIfInvalidUser(user);
-        boolean removalResult = strategy.removeStoredCredentialById(id);
-        // TODO: is the user cache something that is only relevant for the legacy store?
-        UserCache userCache = session.userCache();
-        if (userCache != null) {
-            userCache.evict(realm, user);
-        }
-        return removalResult;
+        return strategy.removeStoredCredentialById(id);
     }
 
     @Override

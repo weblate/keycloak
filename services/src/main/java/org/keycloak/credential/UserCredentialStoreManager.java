@@ -56,46 +56,55 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public void updateCredential(RealmModel realm, UserModel user, CredentialModel cred) {
         user.getUserCredentialManager().updateStoredCredential(cred);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialModel createCredential(RealmModel realm, UserModel user, CredentialModel cred) {
         return user.getUserCredentialManager().createStoredCredential(cred);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean removeStoredCredential(RealmModel realm, UserModel user, String id) {
         return user.getUserCredentialManager().removeStoredCredentialById(id);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id) {
         return user.getUserCredentialManager().getStoredCredentialById(id);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public Stream<CredentialModel> getStoredCredentialsStream(RealmModel realm, UserModel user) {
         return user.getUserCredentialManager().getStoredCredentialsStream();
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
         return user.getUserCredentialManager().getStoredCredentialsByTypeStream(type);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialModel getStoredCredentialByNameAndType(RealmModel realm, UserModel user, String name, String type) {
         return user.getUserCredentialManager().getStoredCredentialByNameAndType(name, type);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean moveCredentialTo(RealmModel realm, UserModel user, String id, String newPreviousCredentialId){
         return user.getUserCredentialManager().moveStoredCredentialTo(id, newPreviousCredentialId);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput... inputs) {
         return isValid(realm, user, Arrays.asList(inputs));
     }
@@ -118,13 +127,10 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
         CredentialModel credential = getStoredCredentialById(realm, user, credentialId);
         credential.setUserLabel(userLabel);
         getStoreForUser(user).updateCredential(realm, user, credential);
-        UserCache userCache = session.userCache();
-        if (userCache != null) {
-            userCache.evict(realm, user);
-        }
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean isValid(RealmModel realm, UserModel user, List<CredentialInput> inputs) {
         return user.getUserCredentialManager().isValid(inputs);
     }
@@ -136,6 +142,7 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
         return user.getUserCredentialManager().updateCredential(input);
     }

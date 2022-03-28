@@ -282,7 +282,6 @@ public class UserAdapter implements CachedUserModel.Streams {
 
     @Override
     public SingleUserCredentialManager getUserCredentialManager() {
-        // TODO: could this also work with a cached user -> no, won't work. But we don't want to invalidate the cache on each access?
         getDelegateForUpdate();
         return updated.getUserCredentialManager();
     }
