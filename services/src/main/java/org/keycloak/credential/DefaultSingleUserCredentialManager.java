@@ -31,6 +31,7 @@ import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -159,8 +160,10 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
         return strategy.moveStoredCredentialTo(id, newPreviousCredentialId);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isValid(UserModel user) {
-        return user != null && user.getServiceAccountClientLink() == null;
+        Objects.requireNonNull(user);
+        return user.getServiceAccountClientLink() == null;
     }
 
     private void validate(RealmModel realm, UserModel user, List<CredentialInput> toValidate, CredentialInputValidator validator) {
@@ -175,10 +178,9 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
     }
 
     private void throwExceptionIfInvalidUser(UserModel user) {
-        if (user == null || isValid(user)) {
-            return;
+        if (!isValid(user)) {
+            throw new RuntimeException("You can not manage credentials for this user");
         }
-        throw new RuntimeException("You can not manage credentials for this user");
     }
 
 }
