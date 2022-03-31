@@ -23,6 +23,9 @@ public abstract class SingleUserCredentialManagerCacheAdapter implements SingleU
 
     @Override
     public boolean isValid(List<CredentialInput> inputs) {
+        // validating a password might still update its hashes, similar logic might apply to OTP logic
+        // instead of having each
+        invalidateCacheForUser();
         return singleUserCredentialManager.isValid(inputs);
     }
 
