@@ -23,6 +23,7 @@ import org.keycloak.models.UserModel;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@Deprecated // Keep this up to and including Keycloak 18, then remove it as it is no longer used
 public interface OnUserCache {
     void onCache(RealmModel realm, CachedUserModel user, UserModel delegate);
 }
