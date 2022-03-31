@@ -17,6 +17,7 @@
 
 package org.keycloak.models.cache.infinispan;
 
+import org.keycloak.credential.CredentialModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -34,6 +35,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -290,6 +292,42 @@ public class UserAdapter implements CachedUserModel.Streams {
             if (updated == null) throw new IllegalStateException("Not found in database");
         }
         return new SingleUserCredentialManagerCacheAdapter(updated.getUserCredentialManager()) {
+            @Override
+            public CredentialModel getStoredCredentialById(String id) {
+                if (!userRegisteredForInvalidation) {
+                    return cached.getStoredCredentials(modelSupplier).stream().filter(credential ->
+                                    Objects.equals(id, credential.getId()))
+                            .findFirst().orElse(null);
+                }
+                return super.getStoredCredentialById(id);
+            }
+
+            @Override
+            public Stream<CredentialModel> getStoredCredentialsStream() {
+                if (!userRegisteredForInvalidation) {
+                    return cached.getStoredCredentials(modelSupplier).stream();
+                }
+                return super.getStoredCredentialsStream();
+            }
+
+            @Override
+            public Stream<CredentialModel> getStoredCredentialsByTypeStream(String type) {
+                if (!userRegisteredForInvalidation) {
+                    return cached.getStoredCredentials(modelSupplier).stream().filter(credential -> Objects.equals(type, credential.getType()));
+                }
+                return super.getStoredCredentialsByTypeStream(type);
+            }
+
+            @Override
+            public CredentialModel getStoredCredentialByNameAndType(String name, String type) {
+                if (!userRegisteredForInvalidation) {
+                    return cached.getStoredCredentials(modelSupplier).stream().filter(credential ->
+                            Objects.equals(type, credential.getType()) && Objects.equals(name, credential.getUserLabel()))
+                            .findFirst().orElse(null);
+                }
+                return super.getStoredCredentialByNameAndType(name, type);
+            }
+
             @Override
             public void invalidateCacheForUser() {
                 if (!userRegisteredForInvalidation) {
