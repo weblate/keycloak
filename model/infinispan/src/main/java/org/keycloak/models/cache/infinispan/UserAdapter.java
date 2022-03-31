@@ -17,7 +17,6 @@
 
 package org.keycloak.models.cache.infinispan;
 
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -52,6 +51,7 @@ public class UserAdapter implements CachedUserModel.Streams {
     protected final KeycloakSession keycloakSession;
     protected final RealmModel realm;
     protected volatile UserModel updated;
+    private boolean userRegisteredForInvalidation;
 
     public UserAdapter(CachedUser cached, UserCacheSession userProvider, KeycloakSession keycloakSession, RealmModel realm) {
         this.cached = cached;
@@ -99,8 +99,11 @@ public class UserAdapter implements CachedUserModel.Streams {
     public UserModel getDelegateForUpdate() {
         if (updated == null) {
             userProviderCache.registerUserInvalidation(realm, cached);
+            userRegisteredForInvalidation = true;
             updated = modelSupplier.get();
             if (updated == null) throw new IllegalStateException("Not found in database");
+        } else if (!userRegisteredForInvalidation) {
+            userRegisteredForInvalidation = true;
         }
         return updated;
     }
@@ -282,8 +285,19 @@ public class UserAdapter implements CachedUserModel.Streams {
 
     @Override
     public SingleUserCredentialManager getUserCredentialManager() {
-        getDelegateForUpdate();
-        return updated.getUserCredentialManager();
+        if (updated == null) {
+            updated = modelSupplier.get();
+            if (updated == null) throw new IllegalStateException("Not found in database");
+        }
+        return new SingleUserCredentialManagerCacheAdapter(updated.getUserCredentialManager()) {
+            @Override
+            public void invalidateCacheForUser() {
+                if (!userRegisteredForInvalidation) {
+                    userProviderCache.registerUserInvalidation(realm, cached);
+                    userRegisteredForInvalidation = true;
+                }
+            }
+        };
     }
 
     @Override
