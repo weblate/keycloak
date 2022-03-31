@@ -640,8 +640,8 @@ public class UserResource {
     public Stream<CredentialRepresentation> credentials(){
         auth.users().requireManage(user);
         return session.userCredentialManager().getStoredCredentialsStream(realm, user)
-                .peek(model -> model.setSecretData(null))
-                .map(ModelToRepresentation::toRepresentation);
+                .map(ModelToRepresentation::toRepresentation)
+                .peek(credentialRepresentation -> credentialRepresentation.setSecretData(null));
     }
 
 

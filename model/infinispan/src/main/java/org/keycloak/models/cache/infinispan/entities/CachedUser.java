@@ -126,6 +126,7 @@ public class CachedUser extends AbstractExtendableRevisioned implements InRealm 
     }
 
     public List<CredentialModel> getStoredCredentials(Supplier<UserModel> userModel) {
+        // TODO: should the list and its items be cloned first to avoid side effects?
         return storedCredentials.get(userModel);
     }
 
