@@ -110,23 +110,15 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialModel createCredentialThroughProvider(RealmModel realm, UserModel user, CredentialModel model){
-        throwExceptionIfInvalidUser(user);
-        return session.getKeycloakSessionFactory()
-                .getProviderFactoriesStream(CredentialProvider.class)
-                .map(f -> session.getProvider(CredentialProvider.class, f.getId()))
-                .filter(provider -> Objects.equals(provider.getType(), model.getType()))
-                .map(cp -> cp.createCredential(realm, user, cp.getCredentialFromModel(model)))
-                .findFirst()
-                .orElse(null);
+        return user.getUserCredentialManager().createCredentialThroughProvider(model);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public void updateCredentialLabel(RealmModel realm, UserModel user, String credentialId, String userLabel){
-        throwExceptionIfInvalidUser(user);
-        CredentialModel credential = getStoredCredentialById(realm, user, credentialId);
-        credential.setUserLabel(userLabel);
-        getStoreForUser(user).updateCredential(realm, user, credential);
+        user.getUserCredentialManager().updateCredentialLabel(credentialId, userLabel);
     }
 
     @Override
@@ -135,6 +127,7 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
         return user.getUserCredentialManager().isValid(inputs);
     }
 
+    @Deprecated // Keep this up to and including Keycloak 18, then inline
     public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
                 .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
@@ -148,84 +141,30 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public void disableCredentialType(RealmModel realm, UserModel user, String credentialType) {
-        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
-        if (!StorageId.isLocalStorage(user)) throwExceptionIfInvalidUser(user);
-        if (providerId != null) {
-            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
-            if (model == null || !model.isEnabled()) return;
-
-            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
-            if (updater.supportsCredentialType(credentialType)) {
-                updater.disableCredentialType(realm, user, credentialType);
-            }
-        }
-
-        getCredentialProviders(session, CredentialInputUpdater.class)
-                .filter(updater -> updater.supportsCredentialType(credentialType))
-                .forEach(updater -> updater.disableCredentialType(realm, user, credentialType));
+        user.getUserCredentialManager().disableCredentialType(credentialType);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
-        Stream<String> types = Stream.empty();
-        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
-        if (providerId != null) {
-            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
-            if (model == null || !model.isEnabled()) return types;
-
-            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
-            if (updater != null) types = updater.getDisableableCredentialTypesStream(realm, user);
-        }
-
-        return Stream.concat(types, getCredentialProviders(session, CredentialInputUpdater.class)
-                .flatMap(updater -> updater.getDisableableCredentialTypesStream(realm, user)))
-                .distinct();
+        return user.getUserCredentialManager().getDisableableCredentialTypesStream();
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String type) {
-        UserStorageCredentialConfigured userStorageConfigured = isConfiguredThroughUserStorage(realm, user, type);
-
-        // Check if we can rely just on userStorage to decide if credential is configured for the user or not
-        switch (userStorageConfigured) {
-            case CONFIGURED: return true;
-            case USER_STORAGE_DISABLED: return false;
-        }
-
-        // Check locally as a fallback
-        return isConfiguredLocally(realm, user, type);
-    }
-
-
-    private enum UserStorageCredentialConfigured {
-        CONFIGURED,
-        USER_STORAGE_DISABLED,
-        NOT_CONFIGURED
-    }
-
-
-    private UserStorageCredentialConfigured isConfiguredThroughUserStorage(RealmModel realm, UserModel user, String type) {
-        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
-        if (providerId != null) {
-            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
-            if (model == null || !model.isEnabled()) return UserStorageCredentialConfigured.USER_STORAGE_DISABLED;
-
-            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
-            if (validator != null && validator.supportsCredentialType(type) && validator.isConfiguredFor(realm, user, type)) {
-                return UserStorageCredentialConfigured.CONFIGURED;
-            }
-        }
-
-        return UserStorageCredentialConfigured.NOT_CONFIGURED;
+        return user.getUserCredentialManager().isConfiguredFor(type);
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean isConfiguredLocally(RealmModel realm, UserModel user, String type) {
-        return getCredentialProviders(session, CredentialInputValidator.class)
-                .anyMatch(validator -> validator.supportsCredentialType(type) && validator.isConfiguredFor(realm, user, type));
+        return user.getUserCredentialManager().isConfiguredLocally(type);
     }
 
+    // TODO: This can't be moved to a specific user, as the user is can't be determined by the caller looking at the input
     @Override
     public CredentialValidationOutput authenticate(KeycloakSession session, RealmModel realm, CredentialInput input) {
         Stream<CredentialAuthentication> credentialAuthenticationStream = getEnabledStorageProviders(realm, CredentialAuthentication.class);
@@ -239,14 +178,15 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, then remove it together with the OnUserCache class
     public void onCache(RealmModel realm, CachedUserModel user, UserModel delegate) {
         getCredentialProviders(session, OnUserCache.class).forEach(validator -> validator.onCache(realm, user, delegate));
     }
 
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public Stream<String> getConfiguredUserStorageCredentialTypesStream(RealmModel realm, UserModel user) {
-        return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
-                .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));
+        return user.getUserCredentialManager().getConfiguredUserStorageCredentialTypesStream(user);
     }
 
     @Override

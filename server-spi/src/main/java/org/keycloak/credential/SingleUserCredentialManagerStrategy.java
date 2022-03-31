@@ -17,6 +17,8 @@
 
 package org.keycloak.credential;
 
+import org.keycloak.models.KeycloakSession;
+
 import java.util.List;
 import java.util.stream.Stream;
 

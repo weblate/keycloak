@@ -50,4 +50,18 @@ public interface SingleUserCredentialManager {
     CredentialModel getStoredCredentialByNameAndType(String name, String type);
 
     boolean moveStoredCredentialTo(String id, String newPreviousCredentialId);
+
+    void updateCredentialLabel(String credentialId, String userLabel);
+
+    void disableCredentialType(String credentialType);
+
+    Stream<String> getDisableableCredentialTypesStream();
+
+    boolean isConfiguredFor(String type);
+
+    boolean isConfiguredLocally(String type);
+
+    Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user);
+
+    CredentialModel createCredentialThroughProvider(CredentialModel model);
 }

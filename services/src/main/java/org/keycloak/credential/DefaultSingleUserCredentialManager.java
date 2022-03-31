@@ -22,7 +22,6 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.cache.UserCache;
 import org.keycloak.storage.AbstractStorageManager;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
@@ -152,6 +151,109 @@ public class DefaultSingleUserCredentialManager extends AbstractStorageManager<U
     public boolean moveStoredCredentialTo(String id, String newPreviousCredentialId) {
         throwExceptionIfInvalidUser(user);
         return strategy.moveStoredCredentialTo(id, newPreviousCredentialId);
+    }
+
+    @Override
+    public void updateCredentialLabel(String credentialId, String userLabel) {
+        throwExceptionIfInvalidUser(user);
+        CredentialModel credential = getStoredCredentialById(credentialId);
+        credential.setUserLabel(userLabel);
+        updateStoredCredential(credential);
+    }
+
+    @Override
+    public void disableCredentialType(String credentialType) {
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (!StorageId.isLocalStorage(user.getId())) throwExceptionIfInvalidUser(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater.supportsCredentialType(credentialType)) {
+                updater.disableCredentialType(realm, user, credentialType);
+            }
+        }
+
+        getCredentialProviders(session, CredentialInputUpdater.class)
+                .filter(updater -> updater.supportsCredentialType(credentialType))
+                .forEach(updater -> updater.disableCredentialType(realm, user, credentialType));
+    }
+
+    @Override
+    public Stream<String> getDisableableCredentialTypesStream() {
+        Stream<String> types = Stream.empty();
+        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return types;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater != null) types = updater.getDisableableCredentialTypesStream(realm, user);
+        }
+
+        return Stream.concat(types, getCredentialProviders(session, CredentialInputUpdater.class)
+                        .flatMap(updater -> updater.getDisableableCredentialTypesStream(realm, user)))
+                .distinct();
+    }
+
+    @Override
+    public boolean isConfiguredFor(String type) {
+        DefaultSingleUserCredentialManager.UserStorageCredentialConfigured userStorageConfigured = isConfiguredThroughUserStorage(realm, user, type);
+
+        // Check if we can rely just on userStorage to decide if credential is configured for the user or not
+        switch (userStorageConfigured) {
+            case CONFIGURED: return true;
+            case USER_STORAGE_DISABLED: return false;
+        }
+
+        // Check locally as a fallback
+        return isConfiguredLocally(type);
+    }
+
+    @Override
+    public boolean isConfiguredLocally(String type) {
+        return getCredentialProviders(session, CredentialInputValidator.class)
+                .anyMatch(validator -> validator.supportsCredentialType(type) && validator.isConfiguredFor(realm, user, type));
+    }
+
+    @Override
+    public Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user) {
+        return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
+                .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));
+    }
+
+    @Override
+    public CredentialModel createCredentialThroughProvider(CredentialModel model) {
+        throwExceptionIfInvalidUser(user);
+        return session.getKeycloakSessionFactory()
+                .getProviderFactoriesStream(CredentialProvider.class)
+                .map(f -> session.getProvider(CredentialProvider.class, f.getId()))
+                .filter(provider -> Objects.equals(provider.getType(), model.getType()))
+                .map(cp -> cp.createCredential(realm, user, cp.getCredentialFromModel(model)))
+                .findFirst()
+                .orElse(null);
+    }
+
+    private enum UserStorageCredentialConfigured {
+        CONFIGURED,
+        USER_STORAGE_DISABLED,
+        NOT_CONFIGURED
+    }
+
+    private UserStorageCredentialConfigured isConfiguredThroughUserStorage(RealmModel realm, UserModel user, String type) {
+        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return UserStorageCredentialConfigured.USER_STORAGE_DISABLED;
+
+            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
+            if (validator != null && validator.supportsCredentialType(type) && validator.isConfiguredFor(realm, user, type)) {
+                return UserStorageCredentialConfigured.CONFIGURED;
+            }
+        }
+
+        return UserStorageCredentialConfigured.NOT_CONFIGURED;
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
