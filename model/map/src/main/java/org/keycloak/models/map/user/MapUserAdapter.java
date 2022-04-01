@@ -308,7 +308,8 @@ public abstract class MapUserAdapter extends AbstractUserModel<MapUserEntity> {
 
     @Override
     public boolean hasRole(RoleModel role) {
-        return RoleUtils.hasRole(getRoleMappingsStream(), role);
+        return RoleUtils.hasRole(getRoleMappingsStream(), role)
+                || RoleUtils.hasRoleFromGroup(getGroupsStream(), role, true);
     }
 
     @Override
