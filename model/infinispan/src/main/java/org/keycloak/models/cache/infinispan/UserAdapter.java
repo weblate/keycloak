@@ -105,6 +105,7 @@ public class UserAdapter implements CachedUserModel.Streams {
             updated = modelSupplier.get();
             if (updated == null) throw new IllegalStateException("Not found in database");
         } else if (!userRegisteredForInvalidation) {
+            userProviderCache.registerUserInvalidation(realm, cached);
             userRegisteredForInvalidation = true;
         }
         return updated;
