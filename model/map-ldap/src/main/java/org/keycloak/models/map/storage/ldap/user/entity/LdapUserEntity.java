@@ -16,9 +16,7 @@
  */
 package org.keycloak.models.map.storage.ldap.user.entity;
 
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.ModelException;
-import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.map.common.DeepCloner;
 import org.keycloak.models.map.common.EntityField;
 import org.keycloak.models.map.common.UpdatableEntity;
@@ -73,6 +71,15 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
         GETTERS.put(MapUserEntityFields.ID, LdapUserEntity::getId);
         GETTERS.put(MapUserEntityFields.REALM_ID, LdapUserEntity::getRealmId);
         GETTERS.put(MapUserEntityFields.ATTRIBUTES, LdapUserEntity::getAttributes);
+        GETTERS.put(MapUserEntityFields.ENABLED, LdapUserEntity::isEnabled);
+    }
+
+    // https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
+    // All enabled user objects
+    // (!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+    // http://www.selfadsi.org/ads-attributes/user-userAccountControl.htm
+    private boolean isEnabled() {
+        return true;
     }
 
     private static final EnumMap<MapUserEntityFields, BiConsumer<LdapUserEntity, Object>> ADDERS = new EnumMap<>(MapUserEntityFields.class);

@@ -16,13 +16,24 @@
  */
 package org.keycloak.models.map.storage.ldap.user;
 
+import org.jboss.logging.Logger;
 import org.keycloak.Config;
+import org.keycloak.common.constants.KerberosConstants;
+import org.keycloak.credential.CredentialInput;
+import org.keycloak.models.CredentialValidationOutput;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.ModelException;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserCredentialModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.map.common.DeepCloner;
 import org.keycloak.models.map.common.StringKeyConverter;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
+import org.keycloak.models.map.storage.criteria.DefaultModelCriteria;
+import org.keycloak.models.map.storage.ldap.config.LdapKerberosConfig;
+import org.keycloak.models.map.storage.ldap.user.kerberos.impl.KerberosServerSubjectAuthenticator;
+import org.keycloak.models.map.storage.ldap.user.kerberos.impl.SPNEGOAuthenticator;
+import org.keycloak.models.map.user.MapCredentialValidationOutput;
 import org.keycloak.models.map.user.MapUserEntity;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder;
 import org.keycloak.models.map.storage.QueryParameters;
@@ -39,7 +50,6 @@ import org.keycloak.models.map.storage.ldap.user.config.LdapMapUserMapperConfig;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapMapUserEntityFieldDelegate;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapUserEntity;
 
-import javax.naming.AuthenticationException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,8 +61,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.keycloak.models.map.storage.QueryParameters.withCriteria;
+import static org.keycloak.models.map.storage.criteria.DefaultModelCriteria.criteria;
+
 public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<LdapMapUserEntityFieldDelegate, MapUserEntity, UserModel> {
 
+    private static final Logger logger = Logger.getLogger(LdapUserMapKeycloakTransaction.class);
     private final StringKeyConverter<String> keyConverter = new StringKeyConverter.StringKey();
     private final Set<String> deletedKeys = new HashSet<>();
     private final LdapMapUserMapperConfig userMapperConfig;
@@ -78,6 +92,60 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
 
     public LdapMapIdentityStore getIdentityStore() {
         return identityStore;
+    }
+
+    @Override
+    public MapCredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
+        if (!(input instanceof UserCredentialModel)) return null;
+        UserCredentialModel credential = (UserCredentialModel)input;
+        if (credential.getType().equals(UserCredentialModel.KERBEROS)) {
+            String spnegoToken = credential.getChallengeResponse();
+
+            LdapKerberosConfig kerberosConfig = new LdapKerberosConfig(ldapMapConfig);
+            KerberosServerSubjectAuthenticator kerberosAuth = new KerberosServerSubjectAuthenticator(kerberosConfig);
+            SPNEGOAuthenticator spnegoAuthenticator = new SPNEGOAuthenticator(kerberosConfig, kerberosAuth, spnegoToken);
+            spnegoAuthenticator.authenticate();
+
+            Map<String, String> state = new HashMap<>();
+            if (spnegoAuthenticator.isAuthenticated()) {
+                MapUserEntity user = findOrCreateAuthenticatedUser(realm, spnegoAuthenticator.getAuthenticatedUsername(), spnegoAuthenticator.getKerberosRealm());
+                if (user == null) {
+                    return MapCredentialValidationOutput.failed();
+                } else {
+                    String delegationCredential = spnegoAuthenticator.getSerializedDelegationCredential();
+                    if (delegationCredential != null) {
+                        state.put(KerberosConstants.GSS_DELEGATION_CREDENTIAL, delegationCredential);
+                    }
+                    return new MapCredentialValidationOutput(user, CredentialValidationOutput.Status.AUTHENTICATED, state);
+                }
+            }  else if (spnegoAuthenticator.getResponseToken() != null) {
+                // Case when SPNEGO handshake requires multiple steps
+                logger.tracef("SPNEGO Handshake will continue");
+                state.put(KerberosConstants.RESPONSE_TOKEN, spnegoAuthenticator.getResponseToken());
+                return new MapCredentialValidationOutput(null, CredentialValidationOutput.Status.CONTINUE, state);
+            } else {
+                logger.tracef("SPNEGO Handshake not successful");
+                return MapCredentialValidationOutput.failed();
+            }
+
+        } else {
+            return null;
+        }
+    }
+
+    private MapUserEntity findOrCreateAuthenticatedUser(RealmModel realm, String username, String kerberosRealm) {
+        DefaultModelCriteria<UserModel> mcb = criteria();
+        mcb = mcb.compare(UserModel.SearchableFields.REALM_ID, ModelCriteriaBuilder.Operator.EQ, realm.getId())
+        .compare(UserModel.SearchableFields.USERNAME, ModelCriteriaBuilder.Operator.EQ, username)
+                // .compare(UserModel.SearchableFields.FEDERATION_LINK, ModelCriteriaBuilder.Operator.EQ, kerberosRealm)
+        ;
+        List<MapUserEntity> users = read(withCriteria(mcb)).limit(2).collect(Collectors.toList());
+        if (users.size() == 0 || users.size() > 2) {
+            return null;
+        } else {
+            return users.get(0);
+        }
+
     }
 
     // interface matching the constructor of this class

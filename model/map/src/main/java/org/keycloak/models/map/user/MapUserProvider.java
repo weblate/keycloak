@@ -23,11 +23,12 @@ import org.keycloak.authorization.model.Resource;
 import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.credential.CredentialModel;
+import org.keycloak.credential.CredentialAuthentication;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.SingleUserCredentialManagerProvider;
-import org.keycloak.credential.UserCredentialStore;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
+import org.keycloak.models.CredentialValidationOutput;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderModel;
@@ -79,7 +80,7 @@ import static org.keycloak.models.map.storage.QueryParameters.Order.ASCENDING;
 import static org.keycloak.models.map.storage.QueryParameters.withCriteria;
 import static org.keycloak.models.map.storage.criteria.DefaultModelCriteria.criteria;
 
-public class MapUserProvider implements UserProvider.Streams {
+public class MapUserProvider implements UserProvider.Streams, CredentialAuthentication {
 
     private static final Logger LOG = Logger.getLogger(MapUserProvider.class);
     private final KeycloakSession session;
@@ -756,6 +757,24 @@ public class MapUserProvider implements UserProvider.Streams {
     @Override
     public void close() {
 
+    }
+
+    @Override
+    public boolean supportsCredentialAuthenticationFor(String type) {
+        return true;
+    }
+
+    @Override
+    public CredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
+        MapCredentialValidationOutput result = tx.authenticate(realm, input);
+        if (result == null) {
+            return null;
+        }
+        UserModel user = null;
+        if (result.getAuthenticatedUser() != null) {
+            user = entityToAdapterFunc(realm).apply(result.getAuthenticatedUser());
+        }
+        return new CredentialValidationOutput(user, result.getAuthStatus(), result.getState());
     }
 
     private DefaultModelCriteria<UserModel> addSearchToModelCriteria(String value,

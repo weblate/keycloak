@@ -16,8 +16,11 @@
  */
 package org.keycloak.models.map.storage;
 
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.KeycloakTransaction;
+import org.keycloak.models.RealmModel;
 import org.keycloak.models.map.common.AbstractEntity;
+import org.keycloak.models.map.user.MapCredentialValidationOutput;
 
 import java.util.stream.Stream;
 
@@ -88,4 +91,8 @@ public interface MapKeycloakTransaction<V extends AbstractEntity, M> extends Key
      */
     long delete(QueryParameters<M> queryParameters);
 
+    // TODO: this should only be available in a MapUserTransaction?
+    default MapCredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
+        return null;
+    }
 }

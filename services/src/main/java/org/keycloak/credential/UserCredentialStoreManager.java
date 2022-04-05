@@ -171,9 +171,15 @@ public class UserCredentialStoreManager extends AbstractStorageManager<UserStora
         credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
                 getCredentialProviders(session, CredentialAuthentication.class));
 
+        // TODO: remove
+        if (session.userLocalStorage() instanceof CredentialAuthentication) {
+            credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream, Stream.of((CredentialAuthentication) session.userLocalStorage()));
+        }
+
         return credentialAuthenticationStream
                 .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
                 .map(credentialAuthentication -> credentialAuthentication.authenticate(realm, input))
+                .filter(Objects::nonNull)
                 .findFirst().orElse(null);
     }
 
