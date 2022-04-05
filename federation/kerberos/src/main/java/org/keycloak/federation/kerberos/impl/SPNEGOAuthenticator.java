@@ -118,6 +118,13 @@ public class SPNEGOAuthenticator {
         return username;
     }
 
+    /**
+     * @return username to be used in Keycloak. Username is authenticated kerberos principal without realm name
+     */
+    public String getKerberosRealm() {
+        String[] tokens = authenticatedKerberosPrincipal.split("@");
+        return tokens[1];
+    }
 
     private class AcceptSecContext implements PrivilegedExceptionAction<Boolean> {
 

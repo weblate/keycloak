@@ -22,6 +22,7 @@ import org.keycloak.models.map.common.EntityField;
 import org.keycloak.models.map.common.UpdatableEntity;
 import org.keycloak.models.map.common.delegate.EntityFieldDelegate;
 import org.keycloak.models.map.credential.SingleUserCredentialManagerEntity;
+import org.keycloak.models.map.storage.ldap.config.LdapKerberosConfig;
 import org.keycloak.models.map.storage.ldap.user.credential.LdapSingleUserCredentialManagerEntity;
 import org.keycloak.models.map.user.MapUserEntity;
 import org.keycloak.models.map.user.MapUserEntityFields;
@@ -32,6 +33,7 @@ import org.keycloak.models.map.storage.ldap.user.config.LdapMapUserMapperConfig;
 import org.keycloak.models.map.user.MapUserEntityImpl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,6 +146,9 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
                 result.put(userAttribute, new ArrayList<>(attrs));
             }
         }
+
+        // KERBEROS_PRINCIPAL is used by KerberosFederationProvider to figure out if the user returned by username really matches the Kerberos realm
+        result.put("KERBEROS_PRINCIPAL", Collections.singletonList(getName() + "@" + new LdapKerberosConfig(userMapperConfig.getLdapMapConfig()).getKerberosRealm()));
         return result;
     }
 

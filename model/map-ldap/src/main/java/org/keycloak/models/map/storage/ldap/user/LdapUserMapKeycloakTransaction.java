@@ -140,7 +140,7 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
                 // .compare(UserModel.SearchableFields.FEDERATION_LINK, ModelCriteriaBuilder.Operator.EQ, kerberosRealm)
         ;
         List<MapUserEntity> users = read(withCriteria(mcb)).limit(2).collect(Collectors.toList());
-        if (users.size() == 0 || users.size() > 2) {
+        if (users.size() != 1) {
             return null;
         } else {
             return users.get(0);
