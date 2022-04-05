@@ -93,6 +93,7 @@ public class LdapUserModelCriteriaBuilder extends LdapModelCriteriaBuilder<LdapU
                 } else if (modelField.equals(UserModel.SearchableFields.CONSENT_FOR_CLIENT) ||
                         modelField.equals(UserModel.SearchableFields.CONSENT_WITH_CLIENT_SCOPE) ||
                         modelField.equals(UserModel.SearchableFields.ASSIGNED_ROLE) ||
+                        modelField.equals(UserModel.SearchableFields.ATTRIBUTE) ||
                         modelField.equals(UserModel.SearchableFields.ASSIGNED_GROUP)) {
                     // TODO: don't check on this field in LDAP
                     return new LdapUserModelCriteriaBuilder(userMapperConfig, StringBuilder::new);
@@ -100,8 +101,8 @@ public class LdapUserModelCriteriaBuilder extends LdapModelCriteriaBuilder<LdapU
                         || modelField.equals(UserModel.SearchableFields.FIRST_NAME) || modelField.equals(UserModel.SearchableFields.LAST_NAME)) {
                     // validateValue(value, modelField, op, String.class);
                     String field = modelFieldNameToLdap(userMapperConfig, modelField);
-                    return not(new LdapUserModelCriteriaBuilder(userMapperConfig,
-                            () -> equal(field, value[0], LdapMapEscapeStrategy.DEFAULT, false)));
+                    return new LdapUserModelCriteriaBuilder(userMapperConfig,
+                            () -> equal(field, value[0], LdapMapEscapeStrategy.DEFAULT, false));
                 } else {
                     throw new CriterionNotSupportedException(modelField, op);
                 }
