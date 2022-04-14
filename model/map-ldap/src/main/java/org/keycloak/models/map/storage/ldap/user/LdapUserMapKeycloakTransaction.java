@@ -49,6 +49,7 @@ import org.keycloak.models.map.storage.ldap.store.LdapMapIdentityStore;
 import org.keycloak.models.map.storage.ldap.user.config.LdapMapUserMapperConfig;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapMapUserEntityFieldDelegate;
 import org.keycloak.models.map.storage.ldap.user.entity.LdapUserEntity;
+import org.keycloak.provider.Provider;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -64,7 +65,7 @@ import java.util.stream.Stream;
 import static org.keycloak.models.map.storage.QueryParameters.withCriteria;
 import static org.keycloak.models.map.storage.criteria.DefaultModelCriteria.criteria;
 
-public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<LdapMapUserEntityFieldDelegate, MapUserEntity, UserModel> {
+public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<LdapMapUserEntityFieldDelegate, MapUserEntity, UserModel> implements Provider {
 
     private static final Logger logger = Logger.getLogger(LdapUserMapKeycloakTransaction.class);
     private final StringKeyConverter<String> keyConverter = new StringKeyConverter.StringKey();
@@ -80,6 +81,7 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
         this.userMapperConfig = new LdapMapUserMapperConfig(config);
         this.ldapMapConfig = new LdapMapConfig(config);
         this.identityStore = new LdapMapIdentityStore(session, ldapMapConfig);
+        session.enlistForClose(this);
     }
 
     public void setDelegate(MapKeycloakTransaction<MapUserEntity,UserModel> delegate) {
@@ -146,6 +148,11 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
             return users.get(0);
         }
 
+    }
+
+    @Override
+    public void close() {
+        identityStore.close();
     }
 
     // interface matching the constructor of this class
@@ -258,7 +265,7 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
             @Override
             public void execute() {
                 identityStore.remove(read.getLdapMapObject());
-                System.out.println("deleted: " + read.getLdapMapObject().getDn());
+                // once removed from LDAP, avoid updating a modified entity in LDAP.
                 entities.remove(key);
             }
         });
@@ -394,6 +401,12 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
                 identityStore.update(entity.getLdapMapObject());
             }
         });
+
+        // once the commit is complete, clear the local storage to avoid problems when rollback() is called later
+        // due to a different transaction failing.
+        tasksOnCommit.clear();
+        entities.clear();
+        tasksOnRollback.clear();
     }
 
     @Override
