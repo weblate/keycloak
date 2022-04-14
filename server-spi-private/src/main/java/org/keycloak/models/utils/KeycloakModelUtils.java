@@ -304,17 +304,18 @@ public final class KeycloakModelUtils {
         return cm.get();
     }
 
-    public static <T extends Provider> ProviderFactory<T> getComponentFactory(KeycloakSessionFactory factory, Class<T> providerClass, Scope config, String spiName) {
+    public static <T extends Provider> Provider getComponentProvider(KeycloakSession session, Class<T> providerClass, Scope config, String spiName) {
         String realmId = config.get("realmId");
         String componentId = config.get("componentId");
         if (realmId == null || componentId == null) {
             realmId = "ROOT";
-            ComponentModel cm = new ScopeComponentModel(providerClass, config, spiName, realmId);
-            return factory.getProviderFactory(providerClass, realmId, cm.getId(), k -> cm);
+            ComponentModel componentModel = new ScopeComponentModel(providerClass, config, spiName, realmId);
+            return session.getComponentProvider(providerClass, componentModel.getId(), k -> componentModel);
         } else {
-            return factory.getProviderFactory(providerClass, realmId, componentId, componentModelGetter(realmId, componentId));
+            return session.getComponentProvider(providerClass, componentId, componentModelGetter(realmId, componentId));
         }
     }
+
 
     private static class ScopeComponentModel extends ComponentModel {
 

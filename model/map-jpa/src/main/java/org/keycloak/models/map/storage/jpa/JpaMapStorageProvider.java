@@ -16,8 +16,12 @@
  */
 package org.keycloak.models.map.storage.jpa;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.persistence.EntityManager;
+
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakTransaction;
 import org.keycloak.models.map.common.AbstractEntity;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
@@ -27,15 +31,18 @@ import org.keycloak.models.map.storage.MapStorageProviderFactory.Flag;
 public class JpaMapStorageProvider implements MapStorageProvider {
 
     private final String SESSION_TX_PREFIX = "jpa-map-tx-";
+    private static final AtomicInteger ENUMERATOR = new AtomicInteger(0);
 
     private final JpaMapStorageProviderFactory factory;
     private final KeycloakSession session;
     private final EntityManager em;
+    private final String sessionTxKey;
 
     public JpaMapStorageProvider(JpaMapStorageProviderFactory factory, KeycloakSession session, EntityManager em) {
         this.factory = factory;
         this.session = session;
         this.em = em;
+        this.sessionTxKey = SESSION_TX_PREFIX + ENUMERATOR.getAndIncrement();
     }
 
     @Override
@@ -46,18 +53,19 @@ public class JpaMapStorageProvider implements MapStorageProvider {
     @Override
     @SuppressWarnings("unchecked")
     public <V extends AbstractEntity, M> MapStorage<V, M> getStorage(Class<M> modelType, Flag... flags) {
-        factory.validateAndUpdateSchema(session, modelType);
+        // validate and update the schema for the storage.
+        this.factory.validateAndUpdateSchema(this.session, modelType);
+        // create the JPA transaction and enlist it if needed.
+        if (session.getAttribute(this.sessionTxKey) == null) {
+            KeycloakTransaction jpaTransaction = new JpaTransactionWrapper(em.getTransaction());
+            session.getTransactionManager().enlist(jpaTransaction);
+            session.setAttribute(this.sessionTxKey, jpaTransaction);
+        }
         return new MapStorage<V, M>() {
             @Override
             public MapKeycloakTransaction<V, M> createTransaction(KeycloakSession session) {
-                MapKeycloakTransaction<V, M> sessionTx = session.getAttribute(SESSION_TX_PREFIX + modelType.hashCode(), MapKeycloakTransaction.class);
-                if (sessionTx == null) {
-                    sessionTx = factory.createTransaction(modelType, em);
-                    session.setAttribute(SESSION_TX_PREFIX + modelType.hashCode(), sessionTx);
-                } 
-                return sessionTx;
+                return factory.createTransaction(modelType, em);
             }
         };
     }
-
 }

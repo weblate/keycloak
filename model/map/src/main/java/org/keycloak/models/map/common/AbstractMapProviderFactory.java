@@ -26,9 +26,9 @@ import org.keycloak.component.AmphibianProviderFactory;
 import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
 import org.keycloak.provider.Provider;
-import org.keycloak.provider.ProviderFactory;
 import org.jboss.logging.Logger;
-import static org.keycloak.models.utils.KeycloakModelUtils.getComponentFactory;
+
+import static org.keycloak.models.utils.KeycloakModelUtils.getComponentProvider;
 
 /**
  *
@@ -57,11 +57,9 @@ public abstract class AbstractMapProviderFactory<T extends Provider, V extends A
     }
 
     protected MapStorage<V, M> getStorage(KeycloakSession session) {
-        ProviderFactory<MapStorageProvider> storageProviderFactory = getComponentFactory(session.getKeycloakSessionFactory(),
-          MapStorageProvider.class, storageConfigScope, MapStorageSpi.NAME);
-        final MapStorageProvider factory = storageProviderFactory.create(session);
-
-        return factory.getStorage(modelType);
+        MapStorageProvider provider = MapStorageProvider.class.cast(
+                getComponentProvider(session, MapStorageProvider.class, this.storageConfigScope, MapStorageSpi.NAME));
+        return provider.getStorage(this.modelType);
     }
 
     @Override

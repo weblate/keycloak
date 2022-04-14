@@ -37,10 +37,10 @@ import org.keycloak.models.map.authorization.entity.MapScopeEntity;
 import org.keycloak.models.map.common.AbstractMapProviderFactory;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.MapStorageProvider;
-import org.keycloak.models.map.storage.MapStorageProviderFactory;
 import org.keycloak.models.map.storage.MapStorageSpi;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
-import static org.keycloak.models.utils.KeycloakModelUtils.getComponentFactory;
+
+import static org.keycloak.models.utils.KeycloakModelUtils.getComponentProvider;
 
 /**
  * @author mhajas
@@ -53,9 +53,8 @@ public class MapAuthorizationStoreFactory implements AmphibianProviderFactory<St
 
     @Override
     public StoreFactory create(KeycloakSession session) {
-        MapStorageProviderFactory storageProviderFactory = (MapStorageProviderFactory) getComponentFactory(session.getKeycloakSessionFactory(),
-          MapStorageProvider.class, storageConfigScope, MapStorageSpi.NAME);
-        final MapStorageProvider mapStorageProvider = storageProviderFactory.create(session);
+        final MapStorageProvider mapStorageProvider = MapStorageProvider.class.cast(
+                getComponentProvider(session, MapStorageProvider.class, storageConfigScope, MapStorageSpi.NAME));
         AuthorizationProvider provider = session.getProvider(AuthorizationProvider.class);
 
 

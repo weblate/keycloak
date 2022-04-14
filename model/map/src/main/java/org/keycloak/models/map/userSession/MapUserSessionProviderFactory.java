@@ -29,13 +29,13 @@ import org.keycloak.models.UserSessionProviderFactory;
 import org.keycloak.models.map.common.AbstractMapProviderFactory;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.MapStorageProvider;
-import org.keycloak.models.map.storage.MapStorageProviderFactory;
 
 import org.keycloak.models.map.storage.MapStorageSpi;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
 import org.keycloak.provider.ProviderEvent;
 import org.keycloak.provider.ProviderEventListener;
-import static org.keycloak.models.utils.KeycloakModelUtils.getComponentFactory;
+
+import static org.keycloak.models.utils.KeycloakModelUtils.getComponentProvider;
 
 /**
  * @author <a href="mailto:mkanis@redhat.com">Martin Kanis</a>
@@ -80,14 +80,12 @@ public class MapUserSessionProviderFactory<UK, CK> implements AmphibianProviderF
 
     @Override
     public MapUserSessionProvider create(KeycloakSession session) {
-        MapStorageProviderFactory storageProviderFactoryUs = (MapStorageProviderFactory) getComponentFactory(session.getKeycloakSessionFactory(),
-          MapStorageProvider.class, storageConfigScopeUserSessions, MapStorageSpi.NAME);
-        final MapStorageProvider factoryUs = storageProviderFactoryUs.create(session);
+        final MapStorageProvider factoryUs = MapStorageProvider.class.cast(
+                getComponentProvider(session, MapStorageProvider.class, this.storageConfigScopeUserSessions, MapStorageSpi.NAME));
         MapStorage userSessionStore = factoryUs.getStorage(UserSessionModel.class);
 
-        MapStorageProviderFactory storageProviderFactoryCs = (MapStorageProviderFactory) getComponentFactory(session.getKeycloakSessionFactory(),
-          MapStorageProvider.class, storageConfigScopeClientSessions, MapStorageSpi.NAME);
-        final MapStorageProvider factoryCs = storageProviderFactoryCs.create(session);
+        final MapStorageProvider factoryCs = MapStorageProvider.class.cast(
+                getComponentProvider(session, MapStorageProvider.class, this.storageConfigScopeClientSessions, MapStorageSpi.NAME));
         MapStorage clientSessionStore = factoryCs.getStorage(AuthenticatedClientSessionModel.class);
 
         return new MapUserSessionProvider(session, userSessionStore, clientSessionStore);
