@@ -310,9 +310,9 @@ public final class KeycloakModelUtils {
         if (realmId == null || componentId == null) {
             realmId = "ROOT";
             ComponentModel componentModel = new ScopeComponentModel(providerClass, config, spiName, realmId);
-            return session.getComponentProvider(providerClass, componentModel.getId(), k -> componentModel);
+            return session.getComponentProvider(providerClass, componentModel.getId(), k -> componentModel, realmId);
         } else {
-            return session.getComponentProvider(providerClass, componentId, componentModelGetter(realmId, componentId));
+            return session.getComponentProvider(providerClass, componentId, componentModelGetter(realmId, componentId), realmId);
         }
     }
 

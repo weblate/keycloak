@@ -87,6 +87,10 @@ public interface KeycloakSession extends InvalidationHandler {
      */
     <T extends Provider> T getComponentProvider(Class<T> clazz, String componentId, Function<KeycloakSessionFactory, ComponentModel> modelGetter);
 
+    <T extends Provider> T getComponentProvider(Class<T> clazz, String componentId,
+                                                Function<KeycloakSessionFactory, ComponentModel> modelGetter,
+                                                String realmId);
+
     /**
      *
      * @param <T>

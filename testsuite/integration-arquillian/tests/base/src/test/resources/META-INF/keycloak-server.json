@@ -37,7 +37,7 @@
     },
 
     "deploymentState": {
-        "provider": "${keycloak.deploymentState.provider:jpa}",
+        "provider": "${keycloak.deploymentState.provider:map}",
         "map": {
             "resourcesVersionSeed": "1JZ379bzyOCFA"
         }
@@ -48,10 +48,10 @@
     },
 
     "realm": {
-        "provider": "${keycloak.realm.provider:jpa}",
+        "provider": "${keycloak.realm.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.realm.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.realm.map.storage.provider:jpa-map-storage}"
             }
         }
     },
@@ -66,46 +66,46 @@
     },
 
     "client": {
-        "provider": "${keycloak.client.provider:jpa}",
+        "provider": "${keycloak.client.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.client.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.client.map.storage.provider:jpa-map-storage}"
             }
         }
     },
 
     "clientScope": {
-        "provider": "${keycloak.clientScope.provider:jpa}",
+        "provider": "${keycloak.clientScope.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.clientScope.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.clientScope.map.storage.provider:jpa-map-storage}"
             }
         }
     },
 
     "group": {
-        "provider": "${keycloak.group.provider:jpa}",
+        "provider": "${keycloak.group.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.group.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.group.map.storage.provider:jpa-map-storage}"
             }
         }
     },
 
     "role": {
-        "provider": "${keycloak.role.provider:jpa}",
+        "provider": "${keycloak.role.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.role.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.role.map.storage.provider:jpa-map-storage}"
             }
         }
     },
 
     "authenticationSessions": {
-        "provider": "${keycloak.authSession.provider:infinispan}",
+        "provider": "${keycloak.authSession.provider:map}",
         "map": {
             "storage": {
-                "provider": "${keycloak.authSession.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.authSession.map.storage.provider:jpa-map-storage}"
             }
         },
         "infinispan": {
@@ -129,7 +129,7 @@
         "provider": "${keycloak.loginFailure.provider:infinispan}",
         "map": {
             "storage": {
-                "provider": "${keycloak.loginFailure.map.storage.provider:concurrenthashmap}"
+                "provider": "${keycloak.loginFailure.map.storage.provider:jpa-map-storage}"
             }
         }
     },
@@ -141,9 +141,9 @@
             "keyType.authz-resource-servers": "string"
         },
         "jpa-map-storage": {
-            "url": "${keycloak.map.storage.connectionsJpa.url:}",
-            "user": "${keycloak.map.storage.connectionsJpa.user:}",
-            "password": "${keycloak.map.storage.connectionsJpa.password:}",
+            "url": "${keycloak.map.storage.connectionsJpa.url:jdbc:postgresql://localhost:5432/keycloak}",
+            "user": "${keycloak.map.storage.connectionsJpa.user:keycloak}",
+            "password": "${keycloak.map.storage.connectionsJpa.password:pass}",
             "driver": "org.postgresql.Driver",
             "driverDialect": "org.keycloak.models.map.storage.jpa.hibernate.dialect.JsonbPostgreSQL95Dialect",
             "showSql": "${keycloak.map.storage.connectionsJpa,showSql:false}"

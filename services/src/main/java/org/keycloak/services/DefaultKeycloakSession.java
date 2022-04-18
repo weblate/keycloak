@@ -351,15 +351,20 @@ public class DefaultKeycloakSession implements KeycloakSession {
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Provider> T getComponentProvider(Class<T> clazz, String componentId, Function<KeycloakSessionFactory, ComponentModel> modelGetter) {
+        final RealmModel realm = getContext().getRealm();
+        return this.getComponentProvider(clazz, componentId, modelGetter, realm == null ? null : realm.getId());
+    }
+
+    @Override
+    public <T extends Provider> T getComponentProvider(Class<T> clazz, String componentId,
+                                                       Function<KeycloakSessionFactory, ComponentModel> modelGetter, String realmId) {
         Integer hash = clazz.hashCode() + componentId.hashCode();
         T provider = (T) providers.get(hash);
-        final RealmModel realm = getContext().getRealm();
 
         // KEYCLOAK-11890 - Avoid using HashMap.computeIfAbsent() to implement logic in outer if() block below,
         // since per JDK-8071667 the remapping function should not modify the map during computation. While
         // allowed on JDK 1.8, attempt of such a modification throws ConcurrentModificationException with JDK 9+
         if (provider == null) {
-            final String realmId = realm == null ? null : realm.getId();
             ProviderFactory<T> providerFactory = factory.getProviderFactory(clazz, realmId, componentId, modelGetter);
             if (providerFactory != null) {
                 provider = providerFactory.create(this);
