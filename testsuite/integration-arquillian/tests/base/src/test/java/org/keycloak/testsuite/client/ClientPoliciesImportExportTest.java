@@ -59,13 +59,17 @@ public class ClientPoliciesImportExportTest extends AbstractClientPoliciesTest {
 
     @Test
     public void testSingleFileRealmExportImport() throws Throwable {
-        testingClient.testing().exportImport().setProvider(SingleFileExportProviderFactory.PROVIDER_ID);
-        String targetFilePath = testingClient.testing().exportImport().getExportImportTestDirectory() + File.separator + "client-policies-exported-realm.json";
-        testingClient.testing().exportImport().setFile(targetFilePath);
+        try {
+            testingClient.testing().exportImport().setProvider(SingleFileExportProviderFactory.PROVIDER_ID);
+            String targetFilePath = testingClient.testing().exportImport().getExportImportTestDirectory() + File.separator + "client-policies-exported-realm.json";
+            testingClient.testing().exportImport().setFile(targetFilePath);
 
-        setupValidProfilesAndPolicies();
+            setupValidProfilesAndPolicies();
 
-        testRealmExportImport();
+            testRealmExportImport();
+        } finally {
+            testingClient.testing().exportImport().clear();
+        }
     }
 
     private void testRealmExportImport() throws Exception {

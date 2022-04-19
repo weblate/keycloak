@@ -509,19 +509,22 @@ public class BrokerLinkAndTokenExchangeTest extends AbstractServletsAdapterTest 
         ContainerAssume.assumeNotAuthServerRemote();
 
         testExternalExchange();
-        testingClient.testing().exportImport().setProvider(SingleFileExportProviderFactory.PROVIDER_ID);
-        String targetFilePath = testingClient.testing().exportImport().getExportImportTestDirectory() + File.separator + "singleFile-full.json";
-        testingClient.testing().exportImport().setFile(targetFilePath);
-        testingClient.testing().exportImport().setAction(ExportImportConfig.ACTION_EXPORT);
-        testingClient.testing().exportImport().setRealmName(CHILD_IDP);
-        testingClient.testing().exportImport().runExport();
 
-        adminClient.realms().realm(CHILD_IDP).remove();
-        testingClient.testing().exportImport().setAction(ExportImportConfig.ACTION_IMPORT);
+        try {
+            testingClient.testing().exportImport().setProvider(SingleFileExportProviderFactory.PROVIDER_ID);
+            String targetFilePath = testingClient.testing().exportImport().getExportImportTestDirectory() + File.separator + "singleFile-full.json";
+            testingClient.testing().exportImport().setFile(targetFilePath);
+            testingClient.testing().exportImport().setAction(ExportImportConfig.ACTION_EXPORT);
+            testingClient.testing().exportImport().setRealmName(CHILD_IDP);
+            testingClient.testing().exportImport().runExport();
 
-        testingClient.testing().exportImport().runImport();
+            adminClient.realms().realm(CHILD_IDP).remove();
+            testingClient.testing().exportImport().setAction(ExportImportConfig.ACTION_IMPORT);
 
-        testingClient.testing().exportImport().clear();
+            testingClient.testing().exportImport().runImport();
+        } finally {
+            testingClient.testing().exportImport().clear();
+        }
 
         testExternalExchange();
     }

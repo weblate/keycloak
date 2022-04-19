@@ -35,6 +35,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import javax.sql.DataSource;
 
+import org.hibernate.FlushMode;
 import org.hibernate.boot.Metadata;
 import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
@@ -92,6 +93,7 @@ import org.keycloak.models.map.storage.jpa.clientscope.JpaClientScopeMapKeycloak
 import org.keycloak.models.map.storage.jpa.clientscope.entity.JpaClientScopeEntity;
 import org.keycloak.models.map.storage.jpa.group.JpaGroupMapKeycloakTransaction;
 import org.keycloak.models.map.storage.jpa.group.entity.JpaGroupEntity;
+import org.keycloak.models.map.storage.jpa.hibernate.listeners.JpaAutoFlushListener;
 import org.keycloak.models.map.storage.jpa.hibernate.listeners.JpaEntityVersionListener;
 import org.keycloak.models.map.storage.jpa.hibernate.listeners.JpaOptimisticLockingListener;
 import org.keycloak.models.map.storage.jpa.realm.JpaRealmMapKeycloakTransaction;
@@ -233,6 +235,9 @@ public class JpaMapStorageProviderFactory implements
                     properties.put("hibernate.show_sql", config.getBoolean("showSql", false));
                     properties.put("hibernate.format_sql", config.getBoolean("formatSql", true));
                     properties.put("hibernate.dialect", config.get("driverDialect"));
+                    // This is the minimum fix for avoiding orphans compared to replacing the auto-flush handler.
+                    // Downside: It will have a bigger performance impact as it will flush also on any pending update or delete.
+                    // properties.put("org.hibernate.flushMode", FlushMode.ALWAYS.toString());
 
                     properties.put(
                             "hibernate.integrator_provider",
@@ -252,6 +257,9 @@ public class JpaMapStorageProviderFactory implements
                                             eventListenerRegistry.appendListeners(EventType.PRE_INSERT, JpaEntityVersionListener.INSTANCE);
                                             eventListenerRegistry.appendListeners(EventType.PRE_UPDATE, JpaEntityVersionListener.INSTANCE);
                                             eventListenerRegistry.appendListeners(EventType.PRE_DELETE, JpaEntityVersionListener.INSTANCE);
+
+                                            // replace auto-flush listener
+                                            eventListenerRegistry.setListeners(EventType.AUTO_FLUSH, JpaAutoFlushListener.INSTANCE);
                                         }
 
                                         @Override

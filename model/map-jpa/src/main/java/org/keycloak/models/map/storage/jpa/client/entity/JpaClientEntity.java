@@ -588,6 +588,6 @@ public class JpaClientEntity extends AbstractClientEntity implements JpaRootVers
     public boolean equals(Object obj) {
         if (this == obj) return true;
         if (!(obj instanceof JpaClientEntity)) return false;
-        return Objects.equals(getId(), ((JpaClientEntity) obj).getId());
+        return id != null && Objects.equals(getId(), ((JpaClientEntity) obj).getId());
     }
 }
