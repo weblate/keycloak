@@ -103,8 +103,10 @@ public class ApplianceBootstrap {
         UserModel adminUser = session.users().addUser(realm, username);
         adminUser.setEnabled(true);
 
-        UserCredentialModel usrCredModel = UserCredentialModel.password(password);
-        session.userCredentialManager().updateCredential(realm, adminUser, usrCredModel);
+        if (password != null && password.length() > 0) {
+            UserCredentialModel usrCredModel = UserCredentialModel.password(password);
+            session.userCredentialManager().updateCredential(realm, adminUser, usrCredModel);
+        }
 
         RoleModel adminRole = realm.getRole(AdminRoles.ADMIN);
         adminUser.grantRole(adminRole);

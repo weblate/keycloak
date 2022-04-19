@@ -236,17 +236,21 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
         identityStore.add(mapped.getLdapMapObject());
         // TODO: add a flag for temporary created users until they are finally committed so that they don't show up in ready(query) in their temporary state
 
-        mapped.getEntityFieldDelegate().createDelegate();
+        try {
+            mapped.getEntityFieldDelegate().createDelegate();
 
-        entities.put(mapped.getId(), mapped);
-
-        tasksOnRollback.add(new DeleteOperation() {
-            @Override
-            public void execute() {
-                identityStore.remove(mapped.getLdapMapObject());
-                entities.remove(mapped.getId());
-            }
-        });
+            // read object from LDAP to learn about other fields that have been added automatically, like for example 'userAccountControl'
+            mapped = read(mapped.getId());
+        } finally {
+            LdapMapUserEntityFieldDelegate mappedStatic = mapped;
+            tasksOnRollback.add(new DeleteOperation() {
+                @Override
+                public void execute() {
+                    identityStore.remove(mappedStatic.getLdapMapObject());
+                    entities.remove(mappedStatic.getId());
+                }
+            });
+        }
 
         return mapped;
     }
@@ -384,6 +388,9 @@ public class LdapUserMapKeycloakTransaction extends LdapMapKeycloakTransaction<L
 
         ldapMapQuery.addReturningLdapAttribute(userMapperConfig.getMembershipLdapAttribute());
         userMapperConfig.getUserAttributes().forEach(ldapMapQuery::addReturningLdapAttribute);
+        if (userMapperConfig.getLdapMapConfig().isActiveDirectory()) {
+            ldapMapQuery.addReturningLdapAttribute("userAccountControl");
+        }
         return ldapMapQuery;
     }
 

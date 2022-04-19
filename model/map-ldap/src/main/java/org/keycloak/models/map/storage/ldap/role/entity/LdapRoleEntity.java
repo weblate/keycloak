@@ -87,7 +87,7 @@ public class LdapRoleEntity extends UpdatableEntity.Impl implements EntityFieldD
 
     public LdapRoleEntity(DeepCloner cloner, LdapMapRoleMapperConfig roleMapperConfig, LdapRoleMapKeycloakTransaction transaction, String clientId) {
         ldapMapObject = new LdapMapObject();
-        ldapMapObject.setObjectClasses(Arrays.asList("top", "groupOfNames"));
+        ldapMapObject.setObjectClasses(roleMapperConfig.getLdapMapConfig().getRoleObjectClasses());
         ldapMapObject.setRdnAttributeName(roleMapperConfig.getRoleNameLdapAttribute());
         this.roleMapperConfig = roleMapperConfig;
         this.transaction = transaction;
@@ -231,14 +231,14 @@ public class LdapRoleEntity extends UpdatableEntity.Impl implements EntityFieldD
             if (member.equals(ldapMapObject.getDn().toString())) {
                 continue;
             }
-            if (!member.startsWith(roleMapperConfig.getRoleNameLdapAttribute())) {
+            if (!LdapMapDn.fromString(member).getFirstRdn().getAllKeys().get(0).equalsIgnoreCase((roleMapperConfig.getRoleNameLdapAttribute()))) {
                 // this is a real user, not a composite role, ignore
-                // TODO: this will not work if users and role use the same!
                 continue;
             }
             String roleId = transaction.readIdByDn(member);
             if (roleId == null) {
-                throw new NotImplementedException();
+                // not found, probably due to a wrong object class so this wasn't a role
+                continue;
             }
             compositeRoles.add(roleId);
         }

@@ -365,10 +365,13 @@ public class KeycloakServer {
             try {
                 session.getTransactionManager().begin();
                 if (new ApplianceBootstrap(session).isNoMasterUser()) {
-                    new ApplianceBootstrap(session).createMasterRealmUser("admin", "admin");
+                    new ApplianceBootstrap(session).createMasterRealmUser("admin", System.getProperty("keycloak.adminUserPassword", "admin"));
                     log.info("Created master user with credentials admin:admin");
                 }
                 session.getTransactionManager().commit();
+            } catch (Exception ex) {
+                session.getTransactionManager().rollback();
+                throw ex;
             } finally {
                 session.close();
             }

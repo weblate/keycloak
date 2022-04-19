@@ -47,6 +47,7 @@ import java.util.function.Function;
 
 public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldDelegate<MapUserEntity> {
 
+    public static final String USER_ACCOUNT_CONTROL = "userAccountControl";
     private final LdapMapObject ldapMapObject;
     private final LdapMapUserMapperConfig userMapperConfig;
     private final LdapUserMapKeycloakTransaction transaction;
@@ -62,6 +63,7 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
         SETTERS.put(MapUserEntityFields.REALM_ID, (e, v) -> e.setRealmId((String) v));
         //noinspection unchecked
         SETTERS.put(MapUserEntityFields.ATTRIBUTES, (e, v) -> e.setAttributes((Map<String, List<String>>) v));
+        SETTERS.put(MapUserEntityFields.ENABLED, (e, v) -> e.setEnabled((Boolean) v));
     }
 
     private static final EnumMap<MapUserEntityFields, Function<LdapUserEntity, Object>> GETTERS = new EnumMap<>(MapUserEntityFields.class);
@@ -74,14 +76,6 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
         GETTERS.put(MapUserEntityFields.REALM_ID, LdapUserEntity::getRealmId);
         GETTERS.put(MapUserEntityFields.ATTRIBUTES, LdapUserEntity::getAttributes);
         GETTERS.put(MapUserEntityFields.ENABLED, LdapUserEntity::isEnabled);
-    }
-
-    // https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
-    // All enabled user objects
-    // (!(userAccountControl:1.2.840.113556.1.4.803:=2)))
-    // http://www.selfadsi.org/ads-attributes/user-userAccountControl.htm
-    private boolean isEnabled() {
-        return true;
     }
 
     private static final EnumMap<MapUserEntityFields, BiConsumer<LdapUserEntity, Object>> ADDERS = new EnumMap<>(MapUserEntityFields.class);
@@ -240,6 +234,41 @@ public class LdapUserEntity extends UpdatableEntity.Impl implements EntityFieldD
             field.set(delegate, value);
         } else {
             consumer.accept(this, value);
+        }
+    }
+
+    // https://social.technet.microsoft.com/wiki/contents/articles/5392.active-directory-ldap-syntax-filters.aspx
+    // All enabled user objects
+    // (!(userAccountControl:1.2.840.113556.1.4.803:=2)))
+    // http://www.selfadsi.org/ads-attributes/user-userAccountControl.htm
+    private boolean isEnabled() {
+        if (ldapMapObject.getAttributes().containsKey(USER_ACCOUNT_CONTROL)) {
+            // it's 4 bytes, to handle it unsigned, use a long
+            return (Long.parseLong(ldapMapObject.getAttributeAsString(USER_ACCOUNT_CONTROL)) & 0x2L) == 0;
+        } else {
+            return true;
+        }
+    }
+
+    private void setEnabled(Boolean enabled) {
+        if (enabled == null) {
+            return;
+        }
+        if (ldapMapObject.getAttributes().containsKey(USER_ACCOUNT_CONTROL)) {
+            // it's 4 bytes, to handle it unsigned, use a long
+            long oldUserAccountControl = Long.parseLong(ldapMapObject.getAttributeAsString(USER_ACCOUNT_CONTROL));
+            long newUserAccountControl;
+            if (enabled) {
+                newUserAccountControl = oldUserAccountControl & ~0x2L;
+            } else {
+                newUserAccountControl = oldUserAccountControl | 0x2L;
+            }
+            if (oldUserAccountControl != newUserAccountControl) {
+                this.updated = true;
+                ldapMapObject.setSingleAttribute(USER_ACCOUNT_CONTROL, Long.toString(newUserAccountControl));
+            }
+        } else {
+            delegate.setEnabled(enabled);
         }
     }
 

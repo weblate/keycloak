@@ -24,9 +24,13 @@ import org.keycloak.models.KeycloakSessionFactory;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509ExtendedTrustManager;
+import java.net.Socket;
+import java.security.cert.X509Certificate;
 
 /**
  * @author <a href="mailto:mstrukel@redhat.com">Marko Strukelj</a>
@@ -80,11 +84,53 @@ public class JSSETruststoreConfigurator {
         if (tm == null) {
             synchronized (this) {
                 if (tm == null) {
-                    TrustManagerFactory tmf = null;
+                    TrustManagerFactory tmf;
                     try {
-                        tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                        tmf.init(provider.getTruststore());
-                        tm = tmf.getTrustManagers();
+                        if (provider.getPolicy().equals(HostnameVerificationPolicy.ANY)) {
+                            // TODO: this disables all TLS validation, including the certificates
+                            tm = new TrustManager[]{
+                                    new X509ExtendedTrustManager() {
+                                        @Override
+                                        public void checkClientTrusted(X509Certificate[] chain, String authType, Socket socket) {
+
+                                        }
+
+                                        @Override
+                                        public void checkServerTrusted(X509Certificate[] chain, String authType, Socket socket) {
+
+                                        }
+
+                                        @Override
+                                        public void checkClientTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+
+                                        }
+
+                                        @Override
+                                        public void checkServerTrusted(X509Certificate[] chain, String authType, SSLEngine engine) {
+
+                                        }
+
+                                        @Override
+                                        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+
+                                        }
+
+                                        @Override
+                                        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+
+                                        }
+
+                                        @Override
+                                        public X509Certificate[] getAcceptedIssuers() {
+                                            return new X509Certificate[0];
+                                        }
+                                    }
+                            };
+                        } else {
+                            tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                            tmf.init(provider.getTruststore());
+                            tm = tmf.getTrustManagers();
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException("Failed to initialize TrustManager: ", e);
                     }

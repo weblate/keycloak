@@ -90,8 +90,7 @@ public class LdapMapDn {
         if (!(obj instanceof LdapMapDn)) {
             return false;
         }
-
-        return toString().equals(obj.toString());
+        return toString().equalsIgnoreCase(obj.toString());
     }
 
     @Override
