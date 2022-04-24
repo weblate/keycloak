@@ -7,39 +7,31 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>keycloak-model-legacy-private</artifactId>
-    <name>Keycloak Legacy Database Support - Private classes</name>
+    <artifactId>keycloak-model-legacy-services</artifactId>
+    <name>Keycloak Legacy Database Support - REST services</name>
     <description/>
 
     <dependencies>
         <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
+            <groupId>org.keycloak</groupId>
+            <artifactId>keycloak-services</artifactId>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-core</artifactId>
+            <artifactId>keycloak-model-legacy-private</artifactId>
         </dependency>
         <dependency>
             <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi</artifactId>
+            <artifactId>keycloak-ldap-federation</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-server-spi-private</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-model-legacy</artifactId>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
@@ -50,6 +42,10 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.openshift</groupId>
+            <artifactId>openshift-restclient-java</artifactId>
         </dependency>
     </dependencies>
 

@@ -33,6 +33,7 @@
     <modules>
         <module>legacy</module>
         <module>legacy-private</module>
+        <module>legacy-services</module>
         <module>jpa</module>
         <module>map-jpa</module>
         <module>infinispan</module>

@@ -7,6 +7,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.utils.PostMigrationEvent;
 import org.keycloak.provider.ProviderEvent;
 import org.keycloak.provider.ProviderEventListener;
+import org.keycloak.services.managers.UserStorageSyncManager;
 import org.keycloak.services.scheduled.ClearExpiredClientInitialAccessTokens;
 import org.keycloak.services.scheduled.ClearExpiredEvents;
 import org.keycloak.services.scheduled.ClearExpiredUserSessions;
@@ -14,6 +15,7 @@ import org.keycloak.services.scheduled.ClusterAwareScheduledTaskRunner;
 import org.keycloak.services.scheduled.ScheduledTaskRunner;
 import org.keycloak.storage.DatastoreProvider;
 import org.keycloak.storage.DatastoreProviderFactory;
+import org.keycloak.storage.LegacyStoreSyncEvent;
 import org.keycloak.timer.TimerProvider;
 
 public class LegacyDatastoreProviderFactory implements DatastoreProviderFactory, ProviderEventListener {
@@ -62,6 +64,9 @@ public class LegacyDatastoreProviderFactory implements DatastoreProviderFactory,
     public void onEvent(ProviderEvent event) {
         if (event instanceof PostMigrationEvent) {
             setupScheduledTasks(((PostMigrationEvent) event).getFactory());
+        } else if (event instanceof LegacyStoreSyncEvent) {
+            LegacyStoreSyncEvent ev = (LegacyStoreSyncEvent) event;
+            UserStorageSyncManager.notifyToRefreshPeriodicSyncAll(ev.getSession(), ev.getRealm(), ev.getRemoved());
         }
     }    
 
@@ -74,7 +79,7 @@ public class LegacyDatastoreProviderFactory implements DatastoreProviderFactory,
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredEvents(), interval), interval, "ClearExpiredEvents");
             timer.schedule(new ClusterAwareScheduledTaskRunner(sessionFactory, new ClearExpiredClientInitialAccessTokens(), interval), interval, "ClearExpiredClientInitialAccessTokens");
             timer.schedule(new ScheduledTaskRunner(sessionFactory, new ClearExpiredUserSessions()), interval, ClearExpiredUserSessions.TASK_NAME);
-            new UserStorageSyncManager().bootstrapPeriodic(sessionFactory, timer);
+            UserStorageSyncManager.bootstrapPeriodic(sessionFactory, timer);
         } finally {
             session.close();
         }

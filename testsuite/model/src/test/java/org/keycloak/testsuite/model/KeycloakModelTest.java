@@ -311,7 +311,7 @@ public abstract class KeycloakModelTest {
             }
         };
         res.init();
-        res.publish(new PostMigrationEvent());
+        res.publish(new PostMigrationEvent(res));
         return res;
     }
 
