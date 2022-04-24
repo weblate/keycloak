@@ -57,13 +57,13 @@ import org.keycloak.policy.PasswordPolicyManagerProvider;
 import org.keycloak.policy.PolicyError;
 import org.keycloak.models.cache.UserCache;
 import org.keycloak.storage.DatastoreProvider;
+import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.ReadOnlyException;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.UserStorageProviderModel;
 import org.keycloak.storage.adapter.InMemoryUserAdapter;
 import org.keycloak.storage.adapter.UpdateOnlyChangeUserModelDelegate;
-import org.keycloak.storage.datastore.LegacyDatastoreProvider;
 import org.keycloak.storage.ldap.idm.model.LDAPObject;
 import org.keycloak.storage.ldap.idm.query.Condition;
 import org.keycloak.storage.ldap.idm.query.EscapeStrategy;
@@ -181,7 +181,7 @@ public class LDAPStorageProvider implements UserStorageProvider,
 
         // We need to avoid having CachedUserModel as cache is upper-layer then LDAP. Hence having CachedUserModel here may cause StackOverflowError
         if (local instanceof CachedUserModel) {
-            LegacyDatastoreProvider datastoreProvider = (LegacyDatastoreProvider) session.getProvider(DatastoreProvider.class);
+            LegacyStoreManagers datastoreProvider = (LegacyStoreManagers) session.getProvider(DatastoreProvider.class);
             local = datastoreProvider.userStorageManager().getUserById(realm, local.getId());
 
             existing = userManager.getManagedProxiedUser(local.getId());

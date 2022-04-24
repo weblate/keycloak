@@ -54,13 +54,13 @@ import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.ReadOnlyUserModelDelegate;
 import org.keycloak.storage.CacheableStorageProviderModel;
 import org.keycloak.storage.DatastoreProvider;
+import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.OnCreateComponent;
 import org.keycloak.storage.OnUpdateComponent;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.UserStorageProviderModel;
 import org.keycloak.storage.client.ClientStorageProvider;
-import org.keycloak.storage.datastore.LegacyDatastoreProvider;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -89,13 +89,13 @@ public class UserCacheSession implements UserCache.Streams, OnCreateComponent, O
     protected Set<String> realmInvalidations = new HashSet<>();
     protected Set<InvalidationEvent> invalidationEvents = new HashSet<>(); // Events to be sent across cluster
     protected Map<String, UserModel> managedUsers = new HashMap<>();
-    private LegacyDatastoreProvider datastoreProvider;
+    private LegacyStoreManagers datastoreProvider;
 
     public UserCacheSession(UserCacheManager cache, KeycloakSession session) {
         this.cache = cache;
         this.session = session;
         this.startupRevision = cache.getCurrentCounter();
-        this.datastoreProvider = (LegacyDatastoreProvider) session.getProvider(DatastoreProvider.class);
+        this.datastoreProvider = (LegacyStoreManagers) session.getProvider(DatastoreProvider.class);
         session.getTransactionManager().enlistAfterCompletion(getTransaction());
     }
 

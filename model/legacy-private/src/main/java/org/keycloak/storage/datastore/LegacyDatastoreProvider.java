@@ -13,10 +13,11 @@ import org.keycloak.storage.ClientScopeStorageManager;
 import org.keycloak.storage.ClientStorageManager;
 import org.keycloak.storage.DatastoreProvider;
 import org.keycloak.storage.GroupStorageManager;
+import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.RoleStorageManager;
 import org.keycloak.storage.UserStorageManager;
 
-public class LegacyDatastoreProvider implements DatastoreProvider {
+public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreManagers {
 
     private final LegacyDatastoreProviderFactory factory;
     private final KeycloakSession session;
