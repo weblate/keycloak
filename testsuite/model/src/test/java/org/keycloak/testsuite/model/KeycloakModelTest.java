@@ -50,6 +50,8 @@ import org.keycloak.provider.ProviderManager;
 import org.keycloak.provider.Spi;
 import org.keycloak.services.DefaultComponentFactoryProviderFactory;
 import org.keycloak.services.DefaultKeycloakSessionFactory;
+import org.keycloak.storage.DatastoreProviderFactory;
+import org.keycloak.storage.DatastoreSpi;
 import org.keycloak.timer.TimerSpi;
 import com.google.common.collect.ImmutableSet;
 
@@ -226,6 +228,7 @@ public abstract class KeycloakModelTest {
       .add(UserLoginFailureSpi.class)
       .add(UserSessionSpi.class)
       .add(UserSpi.class)
+      .add(DatastoreSpi.class)
       .build();
 
     private static final Set<Class<? extends ProviderFactory>> ALLOWED_FACTORIES = ImmutableSet.<Class<? extends ProviderFactory>>builder()
@@ -233,6 +236,7 @@ public abstract class KeycloakModelTest {
       .add(DefaultAuthorizationProviderFactory.class)
       .add(DefaultExecutorsProviderFactory.class)
       .add(DeploymentStateProviderFactory.class)
+      .add(DatastoreProviderFactory.class)
       .build();
 
     protected static final List<KeycloakModelParameters> MODEL_PARAMETERS;
