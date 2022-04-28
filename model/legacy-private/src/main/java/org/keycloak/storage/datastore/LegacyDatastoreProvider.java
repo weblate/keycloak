@@ -1,14 +1,17 @@
 package org.keycloak.storage.datastore;
 
+import org.keycloak.credential.CredentialAuthentication;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.ClientScopeProvider;
 import org.keycloak.models.GroupProvider;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.RoleProvider;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.cache.CacheRealmProvider;
 import org.keycloak.models.cache.UserCache;
+import org.keycloak.storage.AbstractStorageManager;
 import org.keycloak.storage.ClientScopeStorageManager;
 import org.keycloak.storage.ClientStorageManager;
 import org.keycloak.storage.DatastoreProvider;
@@ -18,6 +21,11 @@ import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.MigrationManager;
 import org.keycloak.storage.RoleStorageManager;
 import org.keycloak.storage.UserStorageManager;
+import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.UserStorageProviderFactory;
+import org.keycloak.storage.UserStorageProviderModel;
+
+import java.util.stream.Stream;
 
 public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreManagers {
     private final LegacyDatastoreProviderFactory factory;
@@ -194,6 +202,26 @@ public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreMa
     @Override
     public MigrationManager getMigrationManager() {
         return new LegacyMigrationManager(session);
+    }
+
+    public static class UserCredentialStoreManagerCredentials extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel>  {
+
+        private final RealmModel realm;
+
+        public UserCredentialStoreManagerCredentials(KeycloakSession session, RealmModel realm) {
+            super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
+            this.realm = realm;
+        }
+
+        Stream<CredentialAuthentication> credentialAuthenticationStream() {
+            return getEnabledStorageProviders(realm, CredentialAuthentication.class);
+        }
+
+    }
+
+    @Override
+    public Stream<CredentialAuthentication> credentialAuthenticationStream(RealmModel realm) {
+        return new UserCredentialStoreManagerCredentials(session, realm).credentialAuthenticationStream();
     }
 
 }

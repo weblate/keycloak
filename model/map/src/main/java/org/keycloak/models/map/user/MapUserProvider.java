@@ -23,10 +23,12 @@ import org.keycloak.authorization.model.Resource;
 import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
 import org.keycloak.component.ComponentModel;
-import org.keycloak.credential.CredentialModel;
-import org.keycloak.credential.UserCredentialStore;
+import org.keycloak.credential.CredentialAuthentication;
+import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
+import org.keycloak.models.CredentialValidationOutput;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderModel;
@@ -37,11 +39,13 @@ import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
+import org.keycloak.models.SingleUserCredentialManager;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
+import org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
@@ -77,7 +81,7 @@ import static org.keycloak.models.map.storage.QueryParameters.Order.ASCENDING;
 import static org.keycloak.models.map.storage.QueryParameters.withCriteria;
 import static org.keycloak.models.map.storage.criteria.DefaultModelCriteria.criteria;
 
-public class MapUserProvider implements UserProvider.Streams, UserCredentialStore.Streams {
+public class MapUserProvider implements UserProvider.Streams, CredentialAuthentication {
 
     private static final Logger LOG = Logger.getLogger(MapUserProvider.class);
     private final KeycloakSession session;
@@ -101,6 +105,11 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
             public boolean checkUsernameUniqueness(RealmModel realm, String username) {
                 return getUserByUsername(realm, username) != null;
             }
+
+            @Override
+            public SingleUserCredentialManager getUserCredentialManager() {
+                return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this, new MapSingleUserCredentialManagerStrategy(entity));
+            }
         };
     }
 
@@ -109,7 +118,7 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
             return c -> false;
         }
         String realmId = realm.getId();
-        return entity -> Objects.equals(realmId, entity.getRealmId());
+        return entity -> entity.getRealmId() == null || Objects.equals(realmId, entity.getRealmId());
     }
 
     private ModelException userDoesntExistException() {
@@ -748,91 +757,26 @@ public class MapUserProvider implements UserProvider.Streams, UserCredentialStor
     }
 
     @Override
-    public void updateCredential(RealmModel realm, UserModel user, CredentialModel cred) {
-        getEntityById(realm, user.getId())
-                .ifPresent(updateCredential(cred));
-    }
-    
-    private Consumer<MapUserEntity> updateCredential(CredentialModel credentialModel) {
-        return user -> user.getCredential(credentialModel.getId()).ifPresent(c -> {
-            c.setCreatedDate(credentialModel.getCreatedDate());
-            c.setUserLabel(credentialModel.getUserLabel());
-            c.setType(credentialModel.getType());
-            c.setSecretData(credentialModel.getSecretData());
-            c.setCredentialData(credentialModel.getCredentialData());
-        });
-    }
-
-    @Override
-    public CredentialModel createCredential(RealmModel realm, UserModel user, CredentialModel cred) {
-        LOG.tracef("createCredential(%s, %s, %s)%s", realm, user.getId(), cred.getId(), getShortStackTrace());
-        MapUserEntity userEntity = getEntityByIdOrThrow(realm, user.getId());
-        MapUserCredentialEntity credentialEntity = MapUserCredentialEntity.fromModel(cred);
-
-        if (userEntity.getCredential(cred.getId()).isPresent()) {
-            throw new ModelDuplicateException("A CredentialModel with given id already exists");
-        }
-
-        userEntity.addCredential(credentialEntity);
-
-        return MapUserCredentialEntity.toModel(credentialEntity);
-    }
-
-    @Override
-    public boolean removeStoredCredential(RealmModel realm, UserModel user, String id) {
-        LOG.tracef("removeStoredCredential(%s, %s, %s)%s", realm, user.getId(), id, getShortStackTrace());
-
-        Optional<MapUserEntity> entityById = getEntityById(realm, user.getId());
-        if (!entityById.isPresent()) return false;
-
-        Boolean result = entityById.get().removeCredential(id);
-        return result == null ? true : result; // TODO: make removeStoredCredential return Boolean so the caller can correctly handle "I don't know" null answer
-    }
-
-    @Override
-    public CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id) {
-        LOG.tracef("getStoredCredentialById(%s, %s, %s)%s", realm, user.getId(), id, getShortStackTrace());
-        return getEntityById(realm, user.getId())
-                .flatMap(mapUserEntity -> mapUserEntity.getCredential(id))
-                .map(MapUserCredentialEntity::toModel)
-                .orElse(null);
-    }
-
-    @Override
-    public Stream<CredentialModel> getStoredCredentialsStream(RealmModel realm, UserModel user) {
-        LOG.tracef("getStoredCredentialsStream(%s, %s)%s", realm, user.getId(), getShortStackTrace());
-
-        return getEntityById(realm, user.getId())
-                .map(MapUserEntity::getCredentials)
-                .map(Collection::stream)
-                .orElseGet(Stream::empty)
-                .map(MapUserCredentialEntity::toModel);
-    }
-
-    @Override
-    public Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
-        LOG.tracef("getStoredCredentialsByTypeStream(%s, %s, %s)%s", realm, user.getId(), type, getShortStackTrace());
-        return getStoredCredentialsStream(realm, user)
-                .filter(credential -> Objects.equals(type, credential.getType()));
-    }
-
-    @Override
-    public CredentialModel getStoredCredentialByNameAndType(RealmModel realm, UserModel user, String name, String type) {
-        LOG.tracef("getStoredCredentialByNameAndType(%s, %s, %s, %s)%s", realm, user.getId(), name, type, getShortStackTrace());
-        return getStoredCredentialsByType(realm, user, type).stream()
-                .filter(credential -> Objects.equals(name, credential.getUserLabel()))
-                .findFirst().orElse(null);
-    }
-
-    @Override
-    public boolean moveCredentialTo(RealmModel realm, UserModel user, String id, String newPreviousCredentialId) {
-        LOG.tracef("moveCredentialTo(%s, %s, %s, %s)%s", realm, user, id, newPreviousCredentialId, getShortStackTrace());
-        return getEntityByIdOrThrow(realm, user.getId()).moveCredential(id, newPreviousCredentialId);
-    }
-
-    @Override
     public void close() {
 
+    }
+
+    @Override
+    public boolean supportsCredentialAuthenticationFor(String type) {
+        return true;
+    }
+
+    @Override
+    public CredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
+        MapCredentialValidationOutput result = tx.authenticate(realm, input);
+        if (result == null) {
+            return null;
+        }
+        UserModel user = null;
+        if (result.getAuthenticatedUser() != null) {
+            user = entityToAdapterFunc(realm).apply(result.getAuthenticatedUser());
+        }
+        return new CredentialValidationOutput(user, result.getAuthStatus(), result.getState());
     }
 
     private DefaultModelCriteria<UserModel> addSearchToModelCriteria(String value,

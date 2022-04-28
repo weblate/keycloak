@@ -1,28 +1,38 @@
 package org.keycloak.storage;
 
+import org.keycloak.credential.CredentialAuthentication;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.ClientScopeProvider;
 import org.keycloak.models.GroupProvider;
+import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.RoleProvider;
 import org.keycloak.models.UserProvider;
 import org.keycloak.provider.Provider;
 
+import java.util.stream.Stream;
+
 public interface DatastoreProvider extends Provider {
 
-    public ClientScopeProvider clientScopes();
+    ClientScopeProvider clientScopes();
 
-    public ClientProvider clients();
+    ClientProvider clients();
 
-    public GroupProvider groups();
+    GroupProvider groups();
 
-    public RealmProvider realms();
+    RealmProvider realms();
 
-    public RoleProvider roles();
+    RoleProvider roles();
     
-    public UserProvider users();
+    UserProvider users();
 
     ExportImportManager getExportImportManager();
 
     MigrationManager getMigrationManager();
+
+    /**
+     * Return a list of credential authentications. New datastore providers should return an empty stream here.
+     */
+    @Deprecated
+    Stream<CredentialAuthentication> credentialAuthenticationStream(RealmModel realm);
 }
