@@ -32,9 +32,14 @@ import java.util.stream.Stream;
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import org.keycloak.common.enums.SslRequired;
+import org.keycloak.common.util.reflections.Types;
 import org.keycloak.component.ComponentFactory;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.component.ComponentValidationException;
+import org.keycloak.credential.CredentialAuthentication;
+import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.CredentialProviderFactory;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.AuthenticatorConfigModel;
@@ -42,6 +47,7 @@ import org.keycloak.models.CibaConfig;
 import org.keycloak.models.ClientInitialAccessModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
+import org.keycloak.models.CredentialValidationOutput;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
@@ -1759,6 +1765,26 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
     public void decreaseRemainingCount(ClientInitialAccessModel model) {
         entity.getClientInitialAccess(model.getId())
                         .ifPresent(cia -> cia.setRemainingCount(model.getRemainingCount() - 1));
+    }
+
+    public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
+        return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
+                .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
+                .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
+    }
+
+    @Override
+    public CredentialValidationOutput authenticate(CredentialInput input) {
+        Stream<CredentialAuthentication> credentialAuthenticationStream = Stream.empty();
+
+        credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
+                getCredentialProviders(session, CredentialAuthentication.class));
+
+        return credentialAuthenticationStream
+                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
+                .map(credentialAuthentication -> credentialAuthentication.authenticate(this, input))
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
     }
 
     @Override

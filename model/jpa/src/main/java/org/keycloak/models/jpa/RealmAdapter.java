@@ -22,12 +22,21 @@ import org.jboss.logging.Logger;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.Time;
+import org.keycloak.common.util.reflections.Types;
 import org.keycloak.component.ComponentFactory;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.credential.CredentialAuthentication;
+import org.keycloak.credential.CredentialInput;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.CredentialProviderFactory;
 import org.keycloak.models.*;
 import org.keycloak.models.jpa.entities.*;
 import org.keycloak.models.utils.ComponentUtil;
 import org.keycloak.models.utils.KeycloakModelUtils;
+import org.keycloak.storage.AbstractStorageManager;
+import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.UserStorageProviderFactory;
+import org.keycloak.storage.UserStorageProviderModel;
 
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
@@ -2275,6 +2284,40 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
         em.createNamedQuery("decreaseClientInitialAccessRemainingCount")
                 .setParameter("id", clientInitialAccess.getId())
                 .executeUpdate();
+    }
+
+    public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
+        return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
+                .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
+                .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
+    }
+
+    public static class UserCredentialStoreManagerCredentials extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> {
+
+        private final RealmModel realm;
+
+        public UserCredentialStoreManagerCredentials(KeycloakSession session, RealmModel realm) {
+            super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
+            this.realm = realm;
+        }
+
+        Stream<CredentialAuthentication> credentialAuthenticationStream() {
+            return getEnabledStorageProviders(realm, CredentialAuthentication.class);
+        }
+
+    }
+
+    public CredentialValidationOutput authenticate(CredentialInput input) {
+        Stream<CredentialAuthentication> credentialAuthenticationStream = new UserCredentialStoreManagerCredentials(session, this).credentialAuthenticationStream();
+
+        credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
+                getCredentialProviders(session, CredentialAuthentication.class));
+
+        return credentialAuthenticationStream
+                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
+                .map(credentialAuthentication -> credentialAuthentication.authenticate(this, input))
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
     }
 
     private ClientInitialAccessModel entityToModel(ClientInitialAccessEntity entity) {

@@ -204,24 +204,4 @@ public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreMa
         return new LegacyMigrationManager(session);
     }
 
-    public static class UserCredentialStoreManagerCredentials extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel>  {
-
-        private final RealmModel realm;
-
-        public UserCredentialStoreManagerCredentials(KeycloakSession session, RealmModel realm) {
-            super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
-            this.realm = realm;
-        }
-
-        Stream<CredentialAuthentication> credentialAuthenticationStream() {
-            return getEnabledStorageProviders(realm, CredentialAuthentication.class);
-        }
-
-    }
-
-    @Override
-    public Stream<CredentialAuthentication> credentialAuthenticationStream(RealmModel realm) {
-        return new UserCredentialStoreManagerCredentials(session, realm).credentialAuthenticationStream();
-    }
-
 }

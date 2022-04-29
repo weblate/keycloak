@@ -154,18 +154,10 @@ public class UserCredentialStoreManager
         return user.getUserCredentialManager().isConfiguredLocally(type);
     }
 
-    // TODO: This can't be moved to a specific user, as the user is can't be determined by the caller looking at the input
     @Override
+    @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialValidationOutput authenticate(KeycloakSession session, RealmModel realm, CredentialInput input) {
-        Stream<CredentialAuthentication> credentialAuthenticationStream = session.getProvider(DatastoreProvider.class).credentialAuthenticationStream(realm);
-        credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
-                getCredentialProviders(session, CredentialAuthentication.class));
-
-        return credentialAuthenticationStream
-                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
-                .map(credentialAuthentication -> credentialAuthentication.authenticate(realm, input))
-                .filter(Objects::nonNull)
-                .findFirst().orElse(null);
+        return realm.authenticate(input);
     }
 
     @Override

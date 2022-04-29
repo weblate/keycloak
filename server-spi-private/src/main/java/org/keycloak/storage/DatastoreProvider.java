@@ -30,9 +30,4 @@ public interface DatastoreProvider extends Provider {
 
     MigrationManager getMigrationManager();
 
-    /**
-     * Return a list of credential authentications. New datastore providers should return an empty stream here.
-     */
-    @Deprecated
-    Stream<CredentialAuthentication> credentialAuthenticationStream(RealmModel realm);
 }

@@ -20,6 +20,7 @@ package org.keycloak.models.cache.infinispan;
 import org.keycloak.Config;
 import org.keycloak.common.enums.SslRequired;
 import org.keycloak.component.ComponentModel;
+import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.*;
 import org.keycloak.models.cache.CachedRealmModel;
 import org.keycloak.models.cache.UserCache;
@@ -1754,6 +1755,12 @@ public class RealmAdapter implements CachedRealmModel {
     @Override
     public void decreaseRemainingCount(ClientInitialAccessModel clientInitialAccess) {
         getDelegateForUpdate().decreaseRemainingCount(clientInitialAccess);
+    }
+
+    @Override
+    public CredentialValidationOutput authenticate(CredentialInput input) {
+        // TODO: this will invalidate the realm in the cache
+        return getDelegateForUpdate().authenticate(input);
     }
 
     @Override
