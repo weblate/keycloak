@@ -248,11 +248,6 @@ public interface MapUserEntity extends UpdatableEntity, AbstractEntity, EntityWi
     Long getNotBefore();
     void setNotBefore(Long notBefore);
 
-    /**
-     * Validate the provided credentials for this user.
-     * Each input that is validated successfully is removed from the list of inputs.
-     * If the list of inputs is empty after calling this method, authentication is complete.
-     */
     @IgnoreForEntityImplementationGenerator
     default SingleUserCredentialManagerEntity getUserCredentialManager() {
         return new DefaultSingleUserCredentialManagerEntity();
