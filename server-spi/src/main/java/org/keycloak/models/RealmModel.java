@@ -1008,7 +1008,4 @@ public interface RealmModel extends RoleContainerModel {
     void removeClientInitialAccessModel(String id);
     Stream<ClientInitialAccessModel> getClientInitialAccesses();
     void decreaseRemainingCount(ClientInitialAccessModel clientInitialAccess);
-    default CredentialValidationOutput authenticate(CredentialInput input) {
-        return null;
-    }
 }

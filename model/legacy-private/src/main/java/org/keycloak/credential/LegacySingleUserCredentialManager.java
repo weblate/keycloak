@@ -40,25 +40,25 @@ import java.util.stream.Stream;
  * and {@link CredentialInputValidator}s. Storage specific strategies can be added like for example in
  * org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy.
  *
- * I tried to extract the federation specific parts to the {@link DefaultSingleUserCredentialManagerStrategy} but the control
+ * I tried to extract the federation specific parts to the {@link LegacySingleUserCredentialManagerStrategy} but the control
  * flow in the existing logic: if <code>model == null || !model.isEnabled()</code>, the code will directly return, while
  * the behavior of the strategy is to continue if it returns false and it will then try other providers.
  *
  * @author Alexander Schwartz
  */
-public class DefaultSingleUserCredentialManager extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManager {
+public class LegacySingleUserCredentialManager extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManager {
 
     private final UserModel user;
     private final KeycloakSession session;
     private final RealmModel realm;
-    private final SingleUserCredentialManagerStrategy strategy;
+    private final LegacySingleUserCredentialManagerStrategy strategy;
 
-    public DefaultSingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user, SingleUserCredentialManagerStrategy strategy) {
+    public LegacySingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user) {
         super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.session = session;
         this.realm = realm;
-        this.strategy = strategy;
+        this.strategy = new LegacySingleUserCredentialManagerStrategy(session, realm, user);
     }
 
     @Override

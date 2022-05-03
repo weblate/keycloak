@@ -19,7 +19,7 @@ package org.keycloak.models.jpa;
 
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.ObjectUtil;
-import org.keycloak.credential.SingleUserCredentialManagerProvider;
+import org.keycloak.credential.LegacySingleUserCredentialManager;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -519,7 +519,7 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
 
     @Override
     public SingleUserCredentialManager getUserCredentialManager() {
-        return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
+        return new LegacySingleUserCredentialManager(session, realm, this);
     }
 
 

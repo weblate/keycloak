@@ -65,8 +65,6 @@ public interface UserLookupProvider {
     default CredentialValidationOutput getUserByCredential(RealmModel realm, CredentialInput input) {
         return null;
     }
-    // TODO: searchable field credentialinput for map storage
-    // default implementation for null, real implementations for LDAP and Kerberos
 
     /**
      * @deprecated Use {@link #getUserByUsername(RealmModel, String) getUserByUsername} instead.

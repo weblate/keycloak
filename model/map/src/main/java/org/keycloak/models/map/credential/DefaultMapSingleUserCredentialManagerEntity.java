@@ -15,36 +15,25 @@
  * limitations under the License.
  */
 
-package org.keycloak.credential;
+package org.keycloak.models.map.credential;
 
-import org.keycloak.Config;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.KeycloakSessionFactory;
+import org.keycloak.credential.CredentialInput;
 
-public class DefaultSingleUserCredentialManagerProviderFactory implements SingleUserCredentialManagerProviderFactory {
+import java.util.List;
 
+/**
+ * Standard implementation for a {@link MapSingleUserCredentialManagerEntity} where the store doesn't provide
+ * validation of credentials.
+ *
+ * @author Alexander Schwartz
+ */
+public class DefaultMapSingleUserCredentialManagerEntity implements MapSingleUserCredentialManagerEntity {
     @Override
-    public SingleUserCredentialManagerProvider create(KeycloakSession session) {
-        return new DefaultSingleUserCredentialManagerProvider(session);
+    public void validateCredentials(List<CredentialInput> inputs) {
     }
 
     @Override
-    public void init(Config.Scope config) {
-
-    }
-
-    @Override
-    public void postInit(KeycloakSessionFactory factory) {
-
-    }
-
-    @Override
-    public void close() {
-
-    }
-
-    @Override
-    public String getId() {
-        return "default";
+    public boolean updateCredential(CredentialInput input) {
+        return false;
     }
 }

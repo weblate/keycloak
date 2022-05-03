@@ -2286,40 +2286,6 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
                 .executeUpdate();
     }
 
-    public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
-        return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
-                .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
-                .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
-    }
-
-    public static class UserCredentialStoreManagerCredentials extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> {
-
-        private final RealmModel realm;
-
-        public UserCredentialStoreManagerCredentials(KeycloakSession session, RealmModel realm) {
-            super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
-            this.realm = realm;
-        }
-
-        Stream<CredentialAuthentication> credentialAuthenticationStream() {
-            return getEnabledStorageProviders(realm, CredentialAuthentication.class);
-        }
-
-    }
-
-    public CredentialValidationOutput authenticate(CredentialInput input) {
-        Stream<CredentialAuthentication> credentialAuthenticationStream = new UserCredentialStoreManagerCredentials(session, this).credentialAuthenticationStream();
-
-        credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
-                getCredentialProviders(session, CredentialAuthentication.class));
-
-        return credentialAuthenticationStream
-                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
-                .map(credentialAuthentication -> credentialAuthentication.authenticate(this, input))
-                .filter(Objects::nonNull)
-                .findFirst().orElse(null);
-    }
-
     private ClientInitialAccessModel entityToModel(ClientInitialAccessEntity entity) {
         ClientInitialAccessModel model = new ClientInitialAccessModel();
         model.setId(entity.getId());

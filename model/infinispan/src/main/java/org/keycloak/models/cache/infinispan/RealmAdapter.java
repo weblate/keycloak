@@ -1758,12 +1758,6 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
-    public CredentialValidationOutput authenticate(CredentialInput input) {
-        // TODO: this will invalidate the realm in the cache
-        return getDelegateForUpdate().authenticate(input);
-    }
-
-    @Override
     public String toString() {
         return String.format("%s@%08x", getId(), hashCode());
     }

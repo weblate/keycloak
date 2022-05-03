@@ -22,10 +22,12 @@ import org.keycloak.authorization.AuthorizationProvider;
 import org.keycloak.authorization.model.Resource;
 import org.keycloak.authorization.store.ResourceStore;
 import org.keycloak.common.util.Time;
+import org.keycloak.common.util.reflections.Types;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialAuthentication;
 import org.keycloak.credential.CredentialInput;
-import org.keycloak.credential.SingleUserCredentialManagerProvider;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.CredentialProviderFactory;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.CredentialValidationOutput;
@@ -45,7 +47,8 @@ import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
-import org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy;
+import org.keycloak.models.map.credential.MapSingleUserCredentialManager;
+import org.keycloak.models.map.storage.AuthenticatingTransaction;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
@@ -81,7 +84,7 @@ import static org.keycloak.models.map.storage.QueryParameters.Order.ASCENDING;
 import static org.keycloak.models.map.storage.QueryParameters.withCriteria;
 import static org.keycloak.models.map.storage.criteria.DefaultModelCriteria.criteria;
 
-public class MapUserProvider implements UserProvider.Streams, CredentialAuthentication {
+public class MapUserProvider implements UserProvider.Streams {
 
     private static final Logger LOG = Logger.getLogger(MapUserProvider.class);
     private final KeycloakSession session;
@@ -108,7 +111,7 @@ public class MapUserProvider implements UserProvider.Streams, CredentialAuthenti
 
             @Override
             public SingleUserCredentialManager getUserCredentialManager() {
-                return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this, new MapSingleUserCredentialManagerStrategy(entity));
+                return new MapSingleUserCredentialManager(session, realm, this, entity);
             }
         };
     }
@@ -761,22 +764,34 @@ public class MapUserProvider implements UserProvider.Streams, CredentialAuthenti
 
     }
 
-    @Override
-    public boolean supportsCredentialAuthenticationFor(String type) {
-        return true;
+    public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
+        return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
+                .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
+                .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
     }
 
     @Override
-    public CredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
-        MapCredentialValidationOutput result = tx.authenticate(realm, input);
-        if (result == null) {
-            return null;
+    public CredentialValidationOutput getUserByCredential(RealmModel realm, CredentialInput input) {
+        // TODO: future implementations would narrow down the stream to those provider enabled for the specific realm
+        Stream<CredentialAuthentication> credentialAuthenticationStream = getCredentialProviders(session, CredentialAuthentication.class);
+
+        CredentialValidationOutput r = credentialAuthenticationStream
+                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
+                .map(credentialAuthentication -> credentialAuthentication.authenticate(realm, input))
+                .filter(Objects::nonNull)
+                .findFirst().orElse(null);
+
+        if (r == null && tx instanceof AuthenticatingTransaction) {
+            MapCredentialValidationOutput result = ((AuthenticatingTransaction) tx).authenticate(realm, input);
+            if (result != null) {
+                UserModel user = null;
+                if (result.getAuthenticatedUser() != null) {
+                    user = entityToAdapterFunc(realm).apply(result.getAuthenticatedUser());
+                }
+                r = new CredentialValidationOutput(user, result.getAuthStatus(), result.getState());
+            }
         }
-        UserModel user = null;
-        if (result.getAuthenticatedUser() != null) {
-            user = entityToAdapterFunc(realm).apply(result.getAuthenticatedUser());
-        }
-        return new CredentialValidationOutput(user, result.getAuthStatus(), result.getState());
+        return r;
     }
 
     private DefaultModelCriteria<UserModel> addSearchToModelCriteria(String value,

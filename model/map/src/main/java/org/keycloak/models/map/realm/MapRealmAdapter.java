@@ -1767,26 +1767,6 @@ public class MapRealmAdapter extends AbstractRealmModel<MapRealmEntity> implemen
                         .ifPresent(cia -> cia.setRemainingCount(model.getRemainingCount() - 1));
     }
 
-    public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
-        return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
-                .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
-                .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));
-    }
-
-    @Override
-    public CredentialValidationOutput authenticate(CredentialInput input) {
-        Stream<CredentialAuthentication> credentialAuthenticationStream = Stream.empty();
-
-        credentialAuthenticationStream = Stream.concat(credentialAuthenticationStream,
-                getCredentialProviders(session, CredentialAuthentication.class));
-
-        return credentialAuthenticationStream
-                .filter(credentialAuthentication -> credentialAuthentication.supportsCredentialAuthenticationFor(input.getType()))
-                .map(credentialAuthentication -> credentialAuthentication.authenticate(this, input))
-                .filter(Objects::nonNull)
-                .findFirst().orElse(null);
-    }
-
     @Override
     public OAuth2DeviceConfig getOAuth2DeviceConfig() {
         return new OAuth2DeviceConfig(this);

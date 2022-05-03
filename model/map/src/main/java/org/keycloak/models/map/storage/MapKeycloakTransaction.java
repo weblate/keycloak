@@ -91,8 +91,4 @@ public interface MapKeycloakTransaction<V extends AbstractEntity, M> extends Key
      */
     long delete(QueryParameters<M> queryParameters);
 
-    // TODO: this should only be available in a MapUserTransaction?
-    default MapCredentialValidationOutput authenticate(RealmModel realm, CredentialInput input) {
-        return null;
-    }
 }

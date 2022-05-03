@@ -18,7 +18,7 @@ package org.keycloak.storage.adapter;
 
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.Time;
-import org.keycloak.credential.SingleUserCredentialManagerProvider;
+import org.keycloak.credential.LegacySingleUserCredentialManager;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -258,7 +258,7 @@ public class InMemoryUserAdapter extends UserModelDefaultMethods.Streams {
 
     @Override
     public SingleUserCredentialManager getUserCredentialManager() {
-        return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
+        return new LegacySingleUserCredentialManager(session, realm, this);
     }
 
     @Override

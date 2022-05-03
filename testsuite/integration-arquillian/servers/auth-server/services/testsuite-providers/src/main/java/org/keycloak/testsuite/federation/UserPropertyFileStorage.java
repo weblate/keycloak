@@ -19,6 +19,7 @@ package org.keycloak.testsuite.federation;
 import org.keycloak.component.ComponentModel;
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialInputValidator;
+import org.keycloak.credential.LegacySingleUserCredentialManager;
 import org.keycloak.credential.SingleUserCredentialManagerProvider;
 import org.keycloak.models.GroupModel;
 import org.keycloak.models.KeycloakSession;
@@ -137,7 +138,7 @@ public class UserPropertyFileStorage implements UserLookupProvider.Streams, User
 
                 @Override
                 public SingleUserCredentialManager getUserCredentialManager() {
-                    return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
+                    return new LegacySingleUserCredentialManager(session, realm, this);
                 }
             };
         } else {
@@ -149,7 +150,7 @@ public class UserPropertyFileStorage implements UserLookupProvider.Streams, User
 
                 @Override
                 public SingleUserCredentialManager getUserCredentialManager() {
-                    return session.getProvider(SingleUserCredentialManagerProvider.class).create(realm, this);
+                    return new LegacySingleUserCredentialManager(session, realm, this);
                 }
             };
         }

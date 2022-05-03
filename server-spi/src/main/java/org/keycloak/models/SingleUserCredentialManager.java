@@ -59,6 +59,8 @@ public interface SingleUserCredentialManager {
 
     boolean isConfiguredFor(String type);
 
+    // TODO: not needed for new store?
+    @Deprecated
     boolean isConfiguredLocally(String type);
 
     Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user);

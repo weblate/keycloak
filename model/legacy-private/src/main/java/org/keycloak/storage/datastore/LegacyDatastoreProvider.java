@@ -1,17 +1,14 @@
 package org.keycloak.storage.datastore;
 
-import org.keycloak.credential.CredentialAuthentication;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.ClientScopeProvider;
 import org.keycloak.models.GroupProvider;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.RoleProvider;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.cache.CacheRealmProvider;
 import org.keycloak.models.cache.UserCache;
-import org.keycloak.storage.AbstractStorageManager;
 import org.keycloak.storage.ClientScopeStorageManager;
 import org.keycloak.storage.ClientStorageManager;
 import org.keycloak.storage.DatastoreProvider;
@@ -21,11 +18,7 @@ import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.MigrationManager;
 import org.keycloak.storage.RoleStorageManager;
 import org.keycloak.storage.UserStorageManager;
-import org.keycloak.storage.UserStorageProvider;
-import org.keycloak.storage.UserStorageProviderFactory;
-import org.keycloak.storage.UserStorageProviderModel;
-
-import java.util.stream.Stream;
+import org.keycloak.storage.federated.UserFederatedStorageProvider;
 
 public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreManagers {
     private final LegacyDatastoreProviderFactory factory;
@@ -43,6 +36,7 @@ public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreMa
     private GroupStorageManager groupStorageManager;
     private ClientStorageManager clientStorageManager;
     private UserProvider userStorageManager;
+    private UserFederatedStorageProvider userFederatedStorageProvider;
 
     public LegacyDatastoreProvider(LegacyDatastoreProviderFactory factory, KeycloakSession session) {
         this.factory = factory;
@@ -86,6 +80,19 @@ public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreMa
             userStorageManager = new UserStorageManager(session);
         }
         return userStorageManager;
+    }
+
+    @Override
+    public UserProvider userLocalStorage() {
+        return session.getProvider(UserProvider.class);
+    }
+
+    @Override
+    public UserFederatedStorageProvider userFederatedStorage() {
+        if (userFederatedStorageProvider == null) {
+            userFederatedStorageProvider = session.getProvider(UserFederatedStorageProvider.class);
+        }
+        return userFederatedStorageProvider;
     }
 
     private ClientProvider getClientProvider() {
@@ -200,6 +207,7 @@ public class LegacyDatastoreProvider implements DatastoreProvider, LegacyStoreMa
     }
 
     @Override
+    @Deprecated
     public MigrationManager getMigrationManager() {
         return new LegacyMigrationManager(session);
     }

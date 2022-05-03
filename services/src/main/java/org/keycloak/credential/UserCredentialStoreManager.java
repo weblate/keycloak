@@ -151,13 +151,15 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public boolean isConfiguredLocally(RealmModel realm, UserModel user, String type) {
+        // TODO: no longer used, can be removed
         return user.getUserCredentialManager().isConfiguredLocally(type);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 18, the use methods on user.getUserCredentialManager() instead
     public CredentialValidationOutput authenticate(KeycloakSession session, RealmModel realm, CredentialInput input) {
-        return realm.authenticate(input);
+        // TODO: no longer used, can be removed
+        return session.users().getUserByCredential(realm, input);
     }
 
     @Override

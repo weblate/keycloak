@@ -21,6 +21,8 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.storage.AbstractStorageManager;
+import org.keycloak.storage.DatastoreProvider;
+import org.keycloak.storage.LegacyStoreManagers;
 import org.keycloak.storage.StorageId;
 import org.keycloak.storage.UserStorageProvider;
 import org.keycloak.storage.UserStorageProviderFactory;
@@ -30,16 +32,16 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Strategy for {@link DefaultSingleUserCredentialManager} to handle classic local storage including federation.
+ * Strategy for {@link LegacySingleUserCredentialManager} to handle classic local storage including federation.
  *
  * @author Alexander Schwartz
  */
-public class DefaultSingleUserCredentialManagerStrategy extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManagerStrategy {
+public class LegacySingleUserCredentialManagerStrategy extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManagerStrategy {
 
     private final UserModel user;
     private final RealmModel realm;
 
-    public DefaultSingleUserCredentialManagerStrategy(KeycloakSession session, RealmModel realm, UserModel user) {
+    public LegacySingleUserCredentialManagerStrategy(KeycloakSession session, RealmModel realm, UserModel user) {
         super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.realm = realm;
@@ -95,10 +97,11 @@ public class DefaultSingleUserCredentialManagerStrategy extends AbstractStorageM
     }
 
     protected UserCredentialStore getStoreForUser(UserModel user) {
+        LegacyStoreManagers p = (LegacyStoreManagers) session.getProvider(DatastoreProvider.class);
         if (StorageId.isLocalStorage(user.getId())) {
-            return (UserCredentialStore) session.userLocalStorage();
+            return (UserCredentialStore) p.userLocalStorage();
         } else {
-            return (UserCredentialStore) session.userFederatedStorage();
+            return (UserCredentialStore) p.userFederatedStorage();
         }
     }
 
