@@ -26,6 +26,7 @@ import org.keycloak.storage.DatastoreProvider;
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@Deprecated // as this will be moved to a legacy module
 public class MigrationModelManager {
 
 
