@@ -8,6 +8,6 @@ import org.keycloak.models.map.user.MapCredentialValidationOutput;
 /**
  * @author Alexander Schwartz
  */
-public interface AuthenticatingTransaction<V extends AbstractEntity, M> extends MapKeycloakTransaction<V, M> {
+public interface MapKeycloakTransactionWithAuth<V extends AbstractEntity, M> extends MapKeycloakTransaction<V, M> {
     MapCredentialValidationOutput authenticate(RealmModel realm, CredentialInput input);
 }

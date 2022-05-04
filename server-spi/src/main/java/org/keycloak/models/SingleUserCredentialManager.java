@@ -59,7 +59,7 @@ public interface SingleUserCredentialManager {
 
     boolean isConfiguredFor(String type);
 
-    // TODO: not needed for new store?
+    // TODO: not needed for new store? -> no, will be removed without replacement
     @Deprecated
     boolean isConfiguredLocally(String type);
 

@@ -76,6 +76,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <!-- needed for InMemoryUserAdapter -->
             <groupId>org.keycloak</groupId>
             <artifactId>keycloak-model-legacy-private</artifactId>
         </dependency>

@@ -48,7 +48,7 @@ import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
 import org.keycloak.models.map.credential.MapSingleUserCredentialManager;
-import org.keycloak.models.map.storage.AuthenticatingTransaction;
+import org.keycloak.models.map.storage.MapKeycloakTransactionWithAuth;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
 import org.keycloak.models.map.storage.ModelCriteriaBuilder.Operator;
@@ -781,8 +781,8 @@ public class MapUserProvider implements UserProvider.Streams {
                 .filter(Objects::nonNull)
                 .findFirst().orElse(null);
 
-        if (r == null && tx instanceof AuthenticatingTransaction) {
-            MapCredentialValidationOutput result = ((AuthenticatingTransaction) tx).authenticate(realm, input);
+        if (r == null && tx instanceof MapKeycloakTransactionWithAuth) {
+            MapCredentialValidationOutput result = ((MapKeycloakTransactionWithAuth) tx).authenticate(realm, input);
             if (result != null) {
                 UserModel user = null;
                 if (result.getAuthenticatedUser() != null) {

@@ -144,12 +144,14 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public Stream<String> getDisableableCredentialTypesStream() {
+        // TODO: ask the store
         return getCredentialProviders(session, CredentialInputUpdater.class)
                         .flatMap(updater -> updater.getDisableableCredentialTypesStream(realm, user));
     }
 
     @Override
     public boolean isConfiguredFor(String type) {
+        // TODO: ask the store
         return isConfiguredLocally(type);
     }
 
@@ -161,6 +163,7 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user) {
+        // TODO ask the store
         return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
                 .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));
     }

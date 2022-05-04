@@ -127,10 +127,6 @@
             <version>${jdbc.mvn.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.keycloak</groupId>
-            <artifactId>keycloak-model-legacy-private</artifactId>
-        </dependency>
     </dependencies>
 
     <build>
