@@ -16,6 +16,12 @@
  */
 package org.keycloak.saml.processing.core.parsers.saml.assertion;
 
+import java.util.Deque;
+import java.util.Iterator;
+import java.util.LinkedList;
+import javax.xml.stream.XMLEventFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.Namespace;
 import org.keycloak.saml.common.PicketLinkLogger;
 import org.keycloak.saml.common.PicketLinkLoggerFactory;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
@@ -88,7 +94,7 @@ public class SAMLAttributeValueParser implements StaxParser {
             }
 
             // when no type attribute assigned -> assume anyType
-            return parseAnyTypeAsString(xmlEventReader);
+            return parseAsString(xmlEventReader);
         }
 
         //      RK Added an additional type check for base64Binary type as calheers is passing this type
@@ -96,7 +102,7 @@ public class SAMLAttributeValueParser implements StaxParser {
         if (typeValue.contains(":string")) {
             return StaxParserUtil.getElementText(xmlEventReader);
         } else if (typeValue.contains(":anyType")) {
-            return parseAnyTypeAsString(xmlEventReader);
+            return parseAsString(xmlEventReader);
         } else if(typeValue.contains(":base64Binary")){
             return StaxParserUtil.getElementText(xmlEventReader);
         } else if(typeValue.contains(":date")){
@@ -105,33 +111,29 @@ public class SAMLAttributeValueParser implements StaxParser {
             return StaxParserUtil.getElementText(xmlEventReader);
         }
 
-        // KEYCLOAK-18417: Simply ignore unknown types
-        logger.debug("Skipping attribute value of unsupported type " + typeValue);
-        StaxParserUtil.bypassElementBlock(xmlEventReader);
-        return null;
+        return parseAsString(xmlEventReader);
     }
 
-    public static String parseAnyTypeAsString(XMLEventReader xmlEventReader) throws ParsingException {
+    private static String parseAsString(XMLEventReader xmlEventReader) throws ParsingException {
         try {
-            XMLEvent event = xmlEventReader.peek();
-            if (event.isStartElement()) {
-                event = xmlEventReader.nextTag();
+            if (xmlEventReader.peek().isStartElement()) {
                 StringWriter sw = new StringWriter();
                 XMLEventWriter writer = XMLOutputFactory.newInstance().createXMLEventWriter(sw);
-                //QName tagName = event.asStartElement().getName();
-                int tagLevel = 1;
-                do {
+                Deque<String> definedPrefixes = new LinkedList<>();
+                int tagLevel = 0;
+                while (xmlEventReader.hasNext() && (tagLevel > 0 || !xmlEventReader.peek().isEndElement())) {
+                    XMLEvent event = (XMLEvent) xmlEventReader.next();
                     writer.add(event);
-                    event = (XMLEvent) xmlEventReader.next();
                     if (event.isStartElement()) {
+                        definedPrefixes.push(addNamespaceWhenMissing(definedPrefixes, writer, event.asStartElement()));
                         tagLevel++;
                     }
                     if (event.isEndElement()) {
+                        definedPrefixes.pop();
                         tagLevel--;
                     }
-                } while (xmlEventReader.hasNext() && tagLevel > 0);
-                writer.add(event);
-                writer.flush();
+                }
+                writer.close();
                 return sw.toString();
             } else {
                 return StaxParserUtil.getElementText(xmlEventReader);
@@ -141,4 +143,27 @@ public class SAMLAttributeValueParser implements StaxParser {
         }
     }
 
+    private static String addNamespaceWhenMissing(Deque<String> definedPrefixes, XMLEventWriter writer, StartElement startElement)
+            throws XMLStreamException {
+
+        if (startElement.getName().getPrefix() != null && !startElement.getName().getPrefix().isEmpty()
+                && !definedPrefixes.contains(startElement.getName().getPrefix())) {
+
+            Iterator<Namespace> namespaces = startElement.getNamespaces();
+            boolean hasNamespace = false;
+            while (namespaces.hasNext()) {
+                Namespace namespace = namespaces.next();
+                if (namespace.getNamespaceURI().equals(startElement.getName().getNamespaceURI())) {
+                    hasNamespace = true;
+                    break;
+                }
+            }
+            if (!hasNamespace) {
+                XMLEventFactory xmlEventFactory = XMLEventFactory.newInstance();
+                writer.add(xmlEventFactory.createNamespace(startElement.getName().getPrefix(), startElement.getName().getNamespaceURI()));
+                return startElement.getName().getPrefix();
+            }
+        }
+        return "";
+    }
 }
