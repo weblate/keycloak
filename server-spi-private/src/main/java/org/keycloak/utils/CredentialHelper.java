@@ -122,7 +122,7 @@ public class CredentialHelper {
         // This can usually happened when credential is stored in the userStorage. Propagate to "disable" credential in the userStorage
         if (!removed) {
             logger.debug("Removing OTP credential from userStorage");
-            session.userCredentialManager().disableCredentialType(realm, user, OTPCredentialModel.TYPE);
+            user.getUserCredentialManager().disableCredentialType(OTPCredentialModel.TYPE);
         }
     }
 

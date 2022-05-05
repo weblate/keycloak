@@ -130,6 +130,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public void disableCredentialType(RealmModel realm, UserModel user, String credentialType) {
+        // TODO: no longer used, can be removed
         user.getUserCredentialManager().disableCredentialType(credentialType);
     }
 

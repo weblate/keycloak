@@ -587,7 +587,7 @@ public class UserResource {
         auth.users().requireManage(user);
         if (credentialTypes == null) return;
         for (String type : credentialTypes) {
-            session.userCredentialManager().disableCredentialType(realm, user, type);
+            user.getUserCredentialManager().disableCredentialType(type);
 
         }
     }

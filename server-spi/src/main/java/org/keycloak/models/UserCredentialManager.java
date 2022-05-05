@@ -107,7 +107,7 @@ public interface UserCredentialManager extends UserCredentialStore {
     Set<String> getDisableableCredentialTypes(RealmModel realm, UserModel user);
 
     /**
-     * Obtains the credential types that can be disabled by means of the {@link #disableCredentialType(RealmModel, UserModel, String)}
+     * Obtains the credential types that can be disabled.
      * method.
      *
      * @param realm a reference to the realm.
