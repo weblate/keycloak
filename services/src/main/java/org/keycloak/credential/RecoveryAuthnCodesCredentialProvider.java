@@ -47,7 +47,7 @@ public class RecoveryAuthnCodesCredentialProvider
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
-        return session.userCredentialManager().removeStoredCredential(realm, user, credentialId);
+        return user.getUserCredentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override

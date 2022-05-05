@@ -125,7 +125,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             assertOrder(list, otp1Id.get(), passwordId.get(), otp2Id.get());
 
             // Remove password
-            Assert.assertTrue(currentSession.userCredentialManager().removeStoredCredential(realm, user, passwordId.get()));
+            Assert.assertTrue(user.getUserCredentialManager().removeStoredCredentialById(passwordId.get()));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {

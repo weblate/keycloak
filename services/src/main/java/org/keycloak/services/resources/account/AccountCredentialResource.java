@@ -283,7 +283,7 @@ public class AccountCredentialResource {
         if (credential == null) {
             throw new NotFoundException("Credential not found");
         }
-        session.userCredentialManager().removeStoredCredential(realm, user, credentialId);
+        user.getUserCredentialManager().removeStoredCredentialById(credentialId);
     }
 
 

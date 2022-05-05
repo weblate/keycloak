@@ -973,7 +973,7 @@ public class UserStorageTest extends AbstractAuthTest {
             assertOrder(list, otp1Id.get(), passwordId.get(), otp2Id.get());
 
             // Remove password
-            assertTrue(currentSession.userCredentialManager().removeStoredCredential(realm, user, passwordId.get()));
+            assertTrue(user.getUserCredentialManager().removeStoredCredentialById(passwordId.get()));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {
