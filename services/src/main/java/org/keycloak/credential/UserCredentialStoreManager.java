@@ -116,6 +116,7 @@ public class UserCredentialStoreManager
 
     @Deprecated // Keep this up to and including Keycloak 19, then inline
     public static <T> Stream<T> getCredentialProviders(KeycloakSession session, Class<T> type) {
+        // TODO: no longer used, can be removed
         return session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
                 .filter(f -> Types.supports(type, f, CredentialProviderFactory.class))
                 .map(f -> (T) session.getProvider(CredentialProvider.class, f.getId()));

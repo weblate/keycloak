@@ -5,12 +5,13 @@ import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.AuthenticatorFactory;
+import org.keycloak.common.util.reflections.Types;
 import org.keycloak.credential.CredentialMetadata;
 import org.keycloak.credential.CredentialModel;
 import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.CredentialProviderFactory;
 import org.keycloak.credential.CredentialTypeMetadata;
 import org.keycloak.credential.CredentialTypeMetadataContext;
-import org.keycloak.credential.UserCredentialStoreManager;
 import org.keycloak.models.AccountRoles;
 import org.keycloak.models.AuthenticationExecutionModel;
 import org.keycloak.models.AuthenticationFlowModel;
@@ -168,7 +169,9 @@ public class AccountCredentialResource {
 
         boolean includeUserCredentials = userCredentials == null || userCredentials;
 
-        List<CredentialProvider> credentialProviders = UserCredentialStoreManager.getCredentialProviders(session, CredentialProvider.class)
+        List<CredentialProvider> credentialProviders = session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
+                .filter(f -> Types.supports(CredentialProvider.class, f, CredentialProviderFactory.class))
+                .map(f -> session.getProvider(CredentialProvider.class, f.getId()))
                 .collect(Collectors.toList());
         Set<String> enabledCredentialTypes = getEnabledCredentialTypes(credentialProviders);
 

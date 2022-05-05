@@ -14,9 +14,11 @@ import org.keycloak.admin.client.resource.UserResource;
 import org.keycloak.common.Profile;
 import org.keycloak.common.util.MultivaluedHashMap;
 import org.keycloak.common.util.ObjectUtil;
+import org.keycloak.common.util.reflections.Types;
 import org.keycloak.credential.CredentialAuthentication;
 import org.keycloak.credential.CredentialModel;
-import org.keycloak.credential.UserCredentialStoreManager;
+import org.keycloak.credential.CredentialProvider;
+import org.keycloak.credential.CredentialProviderFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -229,7 +231,9 @@ public class UserStorageTest extends AbstractAuthTest {
     @Test
     @ModelTest
     public void testCast(KeycloakSession session) throws Exception {
-        UserCredentialStoreManager.getCredentialProviders(session, CredentialAuthentication.class).collect(Collectors.toList());
+        session.getKeycloakSessionFactory().getProviderFactoriesStream(CredentialProvider.class)
+                .filter(f -> Types.supports(CredentialAuthentication.class, f, CredentialProviderFactory.class))
+                .map(f -> (CredentialAuthentication) session.getProvider(CredentialProvider.class, f.getId())).collect(Collectors.toList());
     }
 
     @Test
