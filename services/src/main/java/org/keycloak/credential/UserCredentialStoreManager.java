@@ -64,6 +64,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id) {
+        // TODO: no longer used in non-legacy code, can be removed
         return user.getUserCredentialManager().getStoredCredentialById(id);
     }
 

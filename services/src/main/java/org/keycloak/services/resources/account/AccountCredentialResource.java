@@ -279,7 +279,7 @@ public class AccountCredentialResource {
     @NoCache
     public void removeCredential(final @PathParam("credentialId") String credentialId) {
         auth.require(AccountRoles.MANAGE_ACCOUNT);
-        CredentialModel credential = session.userCredentialManager().getStoredCredentialById(realm, user, credentialId);
+        CredentialModel credential = user.getUserCredentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
             throw new NotFoundException("Credential not found");
         }
@@ -299,7 +299,7 @@ public class AccountCredentialResource {
     @NoCache
     public void setLabel(final @PathParam("credentialId") String credentialId, String userLabel) {
         auth.require(AccountRoles.MANAGE_ACCOUNT);
-        CredentialModel credential = session.userCredentialManager().getStoredCredentialById(realm, user, credentialId);
+        CredentialModel credential = user.getUserCredentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
             throw new NotFoundException("Credential not found");
         }

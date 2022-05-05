@@ -769,7 +769,7 @@ public class RepresentationToModel {
         convertDeprecatedCredentialsFormat(userRep);
         if (userRep.getCredentials() != null) {
             for (CredentialRepresentation cred : userRep.getCredentials()) {
-                if (cred.getId() != null && session.userCredentialManager().getStoredCredentialById(realm, user, cred.getId()) != null) {
+                if (cred.getId() != null && user.getUserCredentialManager().getStoredCredentialById(cred.getId()) != null) {
                     continue;
                 }
                 if (cred.getValue() != null && !cred.getValue().isEmpty()) {

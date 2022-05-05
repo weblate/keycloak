@@ -671,7 +671,7 @@ public class UserResource {
     @NoCache
     public void removeCredential(final @PathParam("credentialId") String credentialId) {
         auth.users().requireManage(user);
-        CredentialModel credential = session.userCredentialManager().getStoredCredentialById(realm, user, credentialId);
+        CredentialModel credential = user.getUserCredentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
             // we do this to make sure somebody can't phish ids
             if (auth.users().canQuery()) throw new NotFoundException("Credential not found");
@@ -689,7 +689,7 @@ public class UserResource {
     @Path("credentials/{credentialId}/userLabel")
     public void setCredentialUserLabel(final @PathParam("credentialId") String credentialId, String userLabel) {
         auth.users().requireManage(user);
-        CredentialModel credential = session.userCredentialManager().getStoredCredentialById(realm, user, credentialId);
+        CredentialModel credential = user.getUserCredentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
             // we do this to make sure somebody can't phish ids
             if (auth.users().canQuery()) throw new NotFoundException("Credential not found");
@@ -717,7 +717,7 @@ public class UserResource {
     @POST
     public void moveCredentialAfter(final @PathParam("credentialId") String credentialId, final @PathParam("newPreviousCredentialId") String newPreviousCredentialId){
         auth.users().requireManage(user);
-        CredentialModel credential = session.userCredentialManager().getStoredCredentialById(realm, user, credentialId);
+        CredentialModel credential = user.getUserCredentialManager().getStoredCredentialById(credentialId);
         if (credential == null) {
             // we do this to make sure somebody can't phish ids
             if (auth.users().canQuery()) throw new NotFoundException("Credential not found");
