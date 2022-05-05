@@ -892,14 +892,14 @@ public class UserStorageTest extends AbstractAuthTest {
 
             // Create password
             CredentialModel passwordCred = PasswordCredentialModel.createFromValues("my-algorithm", "theSalt".getBytes(), 22, "ABC");
-            passwordCred = currentSession.userCredentialManager().createCredential(realm, user, passwordCred);
+            passwordCred = user.getUserCredentialManager().createStoredCredential(passwordCred);
             passwordId.set(passwordCred.getId());
 
             // Create Password and 2 OTP credentials (password was already created)
             CredentialModel otp1 = OTPCredentialModel.createFromPolicy(realm, "secret1");
             CredentialModel otp2 = OTPCredentialModel.createFromPolicy(realm, "secret2");
-            otp1 = currentSession.userCredentialManager().createCredential(realm, user, otp1);
-            otp2 = currentSession.userCredentialManager().createCredential(realm, user, otp2);
+            otp1 = user.getUserCredentialManager().createStoredCredential(otp1);
+            otp2 = user.getUserCredentialManager().createStoredCredential(otp2);
             otp1Id.set(otp1.getId());
             otp2Id.set(otp2.getId());
         });
@@ -997,7 +997,7 @@ public class UserStorageTest extends AbstractAuthTest {
             Assert.assertFalse(StorageId.isLocalStorage(user));
 
             CredentialModel otp1 = OTPCredentialModel.createFromPolicy(realm, "secret1");
-            session.userCredentialManager().createCredential(realm, user, otp1);
+            user.getUserCredentialManager().createStoredCredential(otp1);
         });
 
         UserResource user1 = ApiUtil.findUserByUsernameId(testRealmResource(), "thor");

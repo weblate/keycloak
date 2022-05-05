@@ -42,7 +42,7 @@ public class RecoveryAuthnCodesCredentialProvider
         user.getUserCredentialManager().getStoredCredentialsByTypeStream(getType()).findFirst()
                 .ifPresent(model -> deleteCredential(realm, user, model.getId()));
 
-        return session.userCredentialManager().createCredential(realm, user, credentialModel);
+        return user.getUserCredentialManager().createStoredCredential(credentialModel);
     }
 
     @Override

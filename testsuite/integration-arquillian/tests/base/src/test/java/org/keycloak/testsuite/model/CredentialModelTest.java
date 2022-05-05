@@ -50,8 +50,8 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             // Create 2 OTP credentials (password was already created)
             CredentialModel otp1 = OTPCredentialModel.createFromPolicy(realm, "secret1");
             CredentialModel otp2 = OTPCredentialModel.createFromPolicy(realm, "secret2");
-            otp1 = currentSession.userCredentialManager().createCredential(realm, user, otp1);
-            otp2 = currentSession.userCredentialManager().createCredential(realm, user, otp2);
+            otp1 = user.getUserCredentialManager().createStoredCredential(otp1);
+            otp2 = user.getUserCredentialManager().createStoredCredential(otp2);
             otp1Id.set(otp1.getId());
             otp2Id.set(otp2.getId());
         });
