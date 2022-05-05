@@ -778,7 +778,7 @@ public class LDAPProvidersIntegrationTest extends AbstractLDAPTest {
             }
             try {
                 UserCredentialModel cred = UserCredentialModel.password("PoopyPoop1", true);
-                session.userCredentialManager().updateCredential(appRealm, user, cred);
+                user.getUserCredentialManager().updateCredential(cred);
                 Assert.fail("should fail");
             } catch (ReadOnlyException e) {
 
@@ -953,7 +953,7 @@ public class LDAPProvidersIntegrationTest extends AbstractLDAPTest {
             Assert.assertEquals(user.getFederationLink(), ctx.getLdapModel().getId());
 
             UserCredentialModel cred = UserCredentialModel.password("Candycand1", true);
-            session.userCredentialManager().updateCredential(appRealm, user, cred);
+            user.getUserCredentialManager().updateCredential(cred);
             CredentialModel userCredentialValueModel = session.userCredentialManager()
                 .getStoredCredentialsByTypeStream(appRealm, user, PasswordCredentialModel.TYPE)
                 .findFirst().orElse(null);

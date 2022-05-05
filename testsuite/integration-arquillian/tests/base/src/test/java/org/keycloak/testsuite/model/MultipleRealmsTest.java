@@ -88,8 +88,8 @@ public class MultipleRealmsTest extends AbstractTestRealmKeycloakTest {
             Assert.assertNotEquals(r1user1.getId(), r2user1.getId());
 
             // Test password
-            currentSession.userCredentialManager().updateCredential(realm1, r1user1, UserCredentialModel.password("pass1"));
-            currentSession.userCredentialManager().updateCredential(realm2, r2user1, UserCredentialModel.password("pass2"));
+            r1user1.getUserCredentialManager().updateCredential(UserCredentialModel.password("pass1"));
+            r2user1.getUserCredentialManager().updateCredential(UserCredentialModel.password("pass2"));
 
             Assert.assertTrue(currentSession.userCredentialManager().isValid(realm1, r1user1, UserCredentialModel.password("pass1")));
             Assert.assertFalse(currentSession.userCredentialManager().isValid(realm1, r1user1, UserCredentialModel.password("pass2")));

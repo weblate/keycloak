@@ -100,7 +100,7 @@ public class CredentialHelper {
         String totpSecret = credentialModel.getOTPSecretData().getValue();
 
         UserCredentialModel otpUserCredential = new UserCredentialModel("", realm.getOTPPolicy().getType(), totpSecret);
-        boolean userStorageCreated = session.userCredentialManager().updateCredential(realm, user, otpUserCredential);
+        boolean userStorageCreated = user.getUserCredentialManager().updateCredential(otpUserCredential);
 
         String credentialId = null;
         if (userStorageCreated) {

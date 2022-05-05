@@ -124,6 +124,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
+        // TODO: no longer used, can be removed
         return user.getUserCredentialManager().updateCredential(input);
     }
 
