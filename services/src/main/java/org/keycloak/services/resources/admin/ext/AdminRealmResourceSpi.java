@@ -28,7 +28,7 @@ import org.keycloak.provider.Spi;
  * <p>Implementors can use this {@link Spi} to provide additional services to the mentioned API and extend Keycloak capabilities by
  * creating JAX-RS sub-resources for paths not known by the server.
  */
-public class AdminRealmResourceSPI implements Spi {
+public class AdminRealmResourceSpi implements Spi {
 
     @Override
     public boolean isInternal() {

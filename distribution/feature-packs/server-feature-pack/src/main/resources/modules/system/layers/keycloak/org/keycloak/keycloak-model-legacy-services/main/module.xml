@@ -35,7 +35,8 @@
         <module name="org.keycloak.keycloak-model-legacy-private" services="import"/>
         <module name="org.keycloak.keycloak-saml-core-public" services="import"/>
         <module name="org.keycloak.keycloak-saml-core" services="import"/>
-        <module name="org.keycloak.keycloak-services" export="true" services="import"/>
+        <module name="org.keycloak.keycloak-model-legacy-services" export="true" services="import"/>
+        <module name="org.keycloak.keycloak-services" services="import"/>
         <module name="org.keycloak.keycloak-wildfly-extensions" export="true" services="import"/>
 
         <module name="com.googlecode.owasp-java-html-sanitizer"/>
