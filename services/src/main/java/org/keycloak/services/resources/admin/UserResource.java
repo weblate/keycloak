@@ -723,7 +723,7 @@ public class UserResource {
             if (auth.users().canQuery()) throw new NotFoundException("Credential not found");
             else throw new ForbiddenException();
         }
-        session.userCredentialManager().moveCredentialTo(realm, user, credentialId, newPreviousCredentialId);
+        user.getUserCredentialManager().moveStoredCredentialTo(credentialId, newPreviousCredentialId);
     }
 
     /**

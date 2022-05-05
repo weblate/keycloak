@@ -67,13 +67,13 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             assertOrder(list, passwordId.get(), otp1Id.get(), otp2Id.get());
 
             // Assert can't move password when newPreviousCredential not found
-            Assert.assertFalse(currentSession.userCredentialManager().moveCredentialTo(realm, user, passwordId.get(), "not-known"));
+            Assert.assertFalse(user.getUserCredentialManager().moveStoredCredentialTo(passwordId.get(), "not-known"));
 
             // Assert can't move credential when not found
-            Assert.assertFalse(currentSession.userCredentialManager().moveCredentialTo(realm, user, "not-known", otp2Id.get()));
+            Assert.assertFalse(user.getUserCredentialManager().moveStoredCredentialTo("not-known", otp2Id.get()));
 
             // Move otp2 up 1 position
-            Assert.assertTrue(currentSession.userCredentialManager().moveCredentialTo(realm, user, otp2Id.get(), passwordId.get()));
+            Assert.assertTrue(user.getUserCredentialManager().moveStoredCredentialTo(otp2Id.get(), passwordId.get()));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {
@@ -86,7 +86,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             assertOrder(list, passwordId.get(), otp2Id.get(), otp1Id.get());
 
             // Move otp2 to the top
-            Assert.assertTrue(currentSession.userCredentialManager().moveCredentialTo(realm, user, otp2Id.get(), null));
+            Assert.assertTrue(user.getUserCredentialManager().moveStoredCredentialTo(otp2Id.get(), null));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {
@@ -99,7 +99,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             assertOrder(list, otp2Id.get(), passwordId.get(), otp1Id.get());
 
             // Move password down
-            Assert.assertTrue(currentSession.userCredentialManager().moveCredentialTo(realm, user, passwordId.get(), otp1Id.get()));
+            Assert.assertTrue(user.getUserCredentialManager().moveStoredCredentialTo(passwordId.get(), otp1Id.get()));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {
@@ -112,7 +112,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             assertOrder(list, otp2Id.get(), otp1Id.get(), passwordId.get());
 
             // Remove otp2 down two positions
-            Assert.assertTrue(currentSession.userCredentialManager().moveCredentialTo(realm, user, otp2Id.get(), passwordId.get()));
+            Assert.assertTrue(user.getUserCredentialManager().moveStoredCredentialTo(otp2Id.get(), passwordId.get()));
         });
 
         KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), (KeycloakSession currentSession) -> {
