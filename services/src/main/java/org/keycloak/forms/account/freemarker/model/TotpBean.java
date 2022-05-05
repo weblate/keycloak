@@ -51,7 +51,7 @@ public class TotpBean {
 
     public TotpBean(KeycloakSession session, RealmModel realm, UserModel user, UriBuilder uriBuilder) {
         this.uriBuilder = uriBuilder;
-        this.enabled = session.userCredentialManager().isConfiguredFor(realm, user, OTPCredentialModel.TYPE);
+        this.enabled = user.getUserCredentialManager().isConfiguredFor(OTPCredentialModel.TYPE);
         if (enabled) {
             List<CredentialModel> otpCredentials = session.userCredentialManager()
                     .getStoredCredentialsByTypeStream(realm, user, OTPCredentialModel.TYPE).collect(Collectors.toList());

@@ -162,7 +162,7 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
     }
 
     @Override
-    public Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user) {
+    public Stream<String> getConfiguredUserStorageCredentialTypesStream() {
         // TODO ask the store
         return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
                 .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));

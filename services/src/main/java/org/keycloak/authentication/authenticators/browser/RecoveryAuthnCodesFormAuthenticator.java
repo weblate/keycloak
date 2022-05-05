@@ -137,7 +137,7 @@ public class RecoveryAuthnCodesFormAuthenticator implements Authenticator {
 
     @Override
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-        return session.userCredentialManager().isConfiguredFor(realm, user, RecoveryAuthnCodesCredentialModel.TYPE);
+        return user.getUserCredentialManager().isConfiguredFor(RecoveryAuthnCodesCredentialModel.TYPE);
     }
 
     @Override

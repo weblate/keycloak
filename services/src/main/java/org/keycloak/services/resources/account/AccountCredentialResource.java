@@ -201,7 +201,7 @@ public class AccountCredentialResource {
                 userCredentialMetadataModels = credentialMetadataList.stream().map(ModelToRepresentation::toRepresentation).collect(Collectors.toList());
 
                 if (userCredentialMetadataModels.isEmpty() &&
-                        session.userCredentialManager().isConfiguredFor(realm, user, credentialProvider.getType())) {
+                        user.getUserCredentialManager().isConfiguredFor(credentialProvider.getType())) {
                     // In case user is federated in the userStorage, he may have credential configured on the userStorage side. We're
                     // creating "dummy" credential representing the credential provided by userStorage
                     CredentialMetadataRepresentation metadataRepresentation = new CredentialMetadataRepresentation();

@@ -219,7 +219,7 @@ public class PasswordCredentialProvider implements CredentialProvider<PasswordCr
 
         // Check if we are creating or updating password
         UserModel user = metadataContext.getUser();
-        if (user != null && session.userCredentialManager().isConfiguredFor(session.getContext().getRealm(), user, getType())) {
+        if (user != null && user.getUserCredentialManager().isConfiguredFor(getType())) {
             metadataBuilder.updateAction(UserModel.RequiredAction.UPDATE_PASSWORD.toString());
         } else {
             metadataBuilder.createAction(UserModel.RequiredAction.UPDATE_PASSWORD.toString());

@@ -1028,7 +1028,7 @@ public class AccountFormService extends AbstractSecuredLocalService {
     }
 
     public static boolean isPasswordSet(KeycloakSession session, RealmModel realm, UserModel user) {
-        return session.userCredentialManager().isConfiguredFor(realm, user, PasswordCredentialModel.TYPE);
+        return user.getUserCredentialManager().isConfiguredFor(PasswordCredentialModel.TYPE);
     }
 
     private String[] getReferrer() {

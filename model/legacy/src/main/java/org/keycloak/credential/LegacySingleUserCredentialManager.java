@@ -218,7 +218,7 @@ public class LegacySingleUserCredentialManager extends AbstractStorageManager<Us
     }
 
     @Override
-    public Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user) {
+    public Stream<String> getConfiguredUserStorageCredentialTypesStream() {
         return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
                 .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));
     }

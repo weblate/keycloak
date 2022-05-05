@@ -131,7 +131,7 @@ public class OTPFormAuthenticator extends AbstractUsernameFormAuthenticator impl
 
     @Override
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-        return session.userCredentialManager().isConfiguredFor(realm, user, getCredentialProvider(session).getType());
+        return user.getUserCredentialManager().isConfiguredFor(getCredentialProvider(session).getType());
     }
 
     @Override

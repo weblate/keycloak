@@ -83,10 +83,8 @@ class AuthenticationSelectionResolver {
                             processor.getSession().userCredentialManager()
                                 .getStoredCredentialsStream(processor.getRealm(), processor.getAuthenticationSession().getAuthenticatedUser())
                                 .map(CredentialModel::getType),
-                            processor.getSession().userCredentialManager()
-                                .getConfiguredUserStorageCredentialTypesStream(
-                                    processor.getRealm(),
-                                    processor.getAuthenticationSession().getAuthenticatedUser()))
+                            processor.getAuthenticationSession().getAuthenticatedUser().getUserCredentialManager()
+                                .getConfiguredUserStorageCredentialTypesStream())
                         .distinct()
                         .filter(typeAuthExecMap::containsKey)
                         .map(credentialType -> new AuthenticationSelectionOption(processor.getSession(), typeAuthExecMap.get(credentialType)))

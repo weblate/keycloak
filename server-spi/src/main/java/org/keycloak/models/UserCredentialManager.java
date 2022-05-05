@@ -156,8 +156,7 @@ public interface UserCredentialManager extends UserCredentialStore {
      * Return credential types, which are provided by the user storage where user is stored. Returned values can contain for example "password", "otp" etc.
      * This will always return empty list for "local" users, which are not backed by any user storage
      *
-     * @return
-     * @deprecated Use {@link #getConfiguredUserStorageCredentialTypesStream(RealmModel, UserModel) getConfiguredUserStorageCredentialTypesStream}
+     * @deprecated Use {@link UserModel#getUserCredentialManager()} and then call {@link SingleUserCredentialManager#getConfiguredUserStorageCredentialTypesStream()}
      * instead.
      */
     @Deprecated
@@ -174,8 +173,7 @@ public interface UserCredentialManager extends UserCredentialStore {
      * @return a non-null {@link Stream} of credential types.
      */
     default Stream<String> getConfiguredUserStorageCredentialTypesStream(RealmModel realm, UserModel user) {
-        List<String> result = this.getConfiguredUserStorageCredentialTypes(realm, user);
-        return result != null ? result.stream() : Stream.empty();
+        return user.getUserCredentialManager().getConfiguredUserStorageCredentialTypesStream();
     }
 
     /**
@@ -196,7 +194,7 @@ public interface UserCredentialManager extends UserCredentialStore {
 
         @Override
         default List<String> getConfiguredUserStorageCredentialTypes(RealmModel realm, UserModel user) {
-            return this.getConfiguredUserStorageCredentialTypesStream(realm, user).collect(Collectors.toList());
+            return user.getUserCredentialManager().getConfiguredUserStorageCredentialTypesStream().collect(Collectors.toList());
         }
 
         @Override

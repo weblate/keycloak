@@ -658,7 +658,7 @@ public class UserResource {
         // This has "requireManage" due the compatibility with "credentials()" endpoint. Strictly said, it is reading endpoint, not writing,
         // so may be revisited if to rather use "requireView" here in the future.
         auth.users().requireManage(user);
-        return session.userCredentialManager().getConfiguredUserStorageCredentialTypesStream(realm, user);
+        return user.getUserCredentialManager().getConfiguredUserStorageCredentialTypesStream();
     }
 
 

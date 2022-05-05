@@ -63,7 +63,7 @@ public interface SingleUserCredentialManager {
     @Deprecated
     boolean isConfiguredLocally(String type);
 
-    Stream<String> getConfiguredUserStorageCredentialTypesStream(UserModel user);
+    Stream<String> getConfiguredUserStorageCredentialTypesStream();
 
     CredentialModel createCredentialThroughProvider(CredentialModel model);
 }

@@ -244,7 +244,7 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
     }
 
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-        return session.userCredentialManager().isConfiguredFor(realm, user, getCredentialType());
+        return user.getUserCredentialManager().isConfiguredFor(getCredentialType());
     }
 
     public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {
