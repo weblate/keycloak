@@ -695,7 +695,7 @@ public class UserResource {
             if (auth.users().canQuery()) throw new NotFoundException("Credential not found");
             else throw new ForbiddenException();
         }
-        session.userCredentialManager().updateCredentialLabel(realm, user, credentialId, userLabel);
+        user.getUserCredentialManager().updateCredentialLabel(credentialId, userLabel);
     }
 
     /**

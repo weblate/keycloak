@@ -115,6 +115,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public void updateCredentialLabel(RealmModel realm, UserModel user, String credentialId, String userLabel){
+        // TODO: no longer used, can be removed
         user.getUserCredentialManager().updateCredentialLabel(credentialId, userLabel);
     }
 
