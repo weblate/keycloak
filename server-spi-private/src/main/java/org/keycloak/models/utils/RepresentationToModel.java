@@ -783,7 +783,7 @@ public class RepresentationToModel {
                         session.getContext().setRealm(origRealm);
                     }
                 } else {
-                    session.userCredentialManager().createCredentialThroughProvider(realm, user, toModel(cred));
+                    user.getUserCredentialManager().createCredentialThroughProvider(toModel(cred));
                 }
             }
         }

@@ -108,6 +108,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public CredentialModel createCredentialThroughProvider(RealmModel realm, UserModel user, CredentialModel model){
+        // TODO: no longer used, can be removed
         return user.getUserCredentialManager().createCredentialThroughProvider(model);
     }
 
