@@ -12,7 +12,7 @@ import org.keycloak.models.map.common.UpdatableEntity;
  */
 public interface MapStorageWithAuth<V extends AbstractEntity & UpdatableEntity, M> extends MapStorage<V, M> {
 
-    boolean supportsCredentialAuthenticationFor(String type);
+    boolean supportsCredentialType(String type);
 
     @Override
     MapKeycloakTransactionWithAuth<V, M> createTransaction(KeycloakSession session);

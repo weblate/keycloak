@@ -782,7 +782,7 @@ public class MapUserProvider implements UserProvider.Streams {
                 .findFirst().orElse(null);
 
         if (r == null && tx instanceof MapKeycloakTransactionWithAuth) {
-            MapCredentialValidationOutput result = ((MapKeycloakTransactionWithAuth) tx).authenticate(realm, input);
+            MapCredentialValidationOutput<MapUserEntity> result = ((MapKeycloakTransactionWithAuth<MapUserEntity, UserModel>) tx).authenticate(realm, input);
             if (result != null) {
                 UserModel user = null;
                 if (result.getAuthenticatedUser() != null) {

@@ -27,23 +27,23 @@ import java.util.Map;
  *
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
-public class MapCredentialValidationOutput {
+public class MapCredentialValidationOutput<V> {
 
-    private final MapUserEntity authenticatedUser; // authenticated user.
+    private final V authenticatedUser;
     private final CredentialValidationOutput.Status authStatus;           // status whether user is authenticated or more steps needed
     private final Map<String, String> state;   // Additional state related to authentication. It can contain data to be sent back to client or data about used credentials.
 
-    public MapCredentialValidationOutput(MapUserEntity authenticatedUser, CredentialValidationOutput.Status authStatus, Map<String, String> state) {
+    public MapCredentialValidationOutput(V authenticatedUser, CredentialValidationOutput.Status authStatus, Map<String, String> state) {
         this.authenticatedUser = authenticatedUser;
         this.authStatus = authStatus;
         this.state = state;
     }
 
-    public static MapCredentialValidationOutput failed() {
-        return new MapCredentialValidationOutput(null, CredentialValidationOutput.Status.FAILED, new HashMap<String, String>());
+    public static MapCredentialValidationOutput<?> failed() {
+        return new MapCredentialValidationOutput<Void>(null, CredentialValidationOutput.Status.FAILED, new HashMap<>());
     }
 
-    public MapUserEntity getAuthenticatedUser() {
+    public V getAuthenticatedUser() {
         return authenticatedUser;
     }
 
@@ -53,8 +53,6 @@ public class MapCredentialValidationOutput {
 
     /**
      * State that is passed back by provider
-     *
-     * @return
      */
     public Map<String, String> getState() {
         return state;
