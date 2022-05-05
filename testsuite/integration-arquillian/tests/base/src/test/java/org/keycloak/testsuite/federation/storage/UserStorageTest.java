@@ -887,7 +887,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
             Assert.assertFalse(StorageId.isLocalStorage(user));
 
-            Stream<CredentialModel> credentials = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user);
+            Stream<CredentialModel> credentials = user.getUserCredentialManager().getStoredCredentialsStream();
             org.keycloak.testsuite.Assert.assertEquals(0, credentials.count());
 
             // Create password
@@ -910,7 +910,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: password, otp1, otp2
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, passwordId.get(), otp1Id.get(), otp2Id.get());
 
@@ -929,7 +929,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: password, otp2, otp1
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, passwordId.get(), otp2Id.get(), otp1Id.get());
 
@@ -942,7 +942,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: otp2, password, otp1
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp2Id.get(), passwordId.get(), otp1Id.get());
 
@@ -955,7 +955,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: otp2, otp1, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp2Id.get(), otp1Id.get(), passwordId.get());
 
@@ -968,7 +968,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: otp2, otp1, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp1Id.get(), passwordId.get(), otp2Id.get());
 
@@ -981,7 +981,7 @@ public class UserStorageTest extends AbstractAuthTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "thor");
 
             // Assert priorities: otp2, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp1Id.get(), otp2Id.get());
         });

@@ -46,7 +46,7 @@ public interface UserCredentialStore extends Provider {
     CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id);
 
     /**
-     * @deprecated Use {@link #getStoredCredentialsStream(RealmModel, UserModel) getStoredCredentialsStream} instead.
+     * @deprecated Use {@link org.keycloak.models.SingleUserCredentialManager#getStoredCredentialsStream()} instead.
      */
     @Deprecated
     List<CredentialModel> getStoredCredentials(RealmModel realm, UserModel user);
@@ -98,7 +98,7 @@ public interface UserCredentialStore extends Provider {
     interface Streams extends UserCredentialStore {
         @Override
         default List<CredentialModel> getStoredCredentials(RealmModel realm, UserModel user) {
-            return this.getStoredCredentialsStream(realm, user).collect(Collectors.toList());
+            return user.getUserCredentialManager().getStoredCredentialsStream().collect(Collectors.toList());
         }
 
         @Override

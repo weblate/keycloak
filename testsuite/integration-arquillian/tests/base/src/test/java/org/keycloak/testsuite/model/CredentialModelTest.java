@@ -42,7 +42,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             RealmModel realm = currentSession.realms().getRealmByName("test");
 
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             Assert.assertEquals(1, list.size());
             passwordId.set(list.get(0).getId());
@@ -62,7 +62,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: password, otp1, otp2
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, passwordId.get(), otp1Id.get(), otp2Id.get());
 
@@ -81,7 +81,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: password, otp2, otp1
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, passwordId.get(), otp2Id.get(), otp1Id.get());
 
@@ -94,7 +94,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: otp2, password, otp1
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp2Id.get(), passwordId.get(), otp1Id.get());
 
@@ -107,7 +107,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: otp2, otp1, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp2Id.get(), otp1Id.get(), passwordId.get());
 
@@ -120,7 +120,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: otp2, otp1, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp1Id.get(), passwordId.get(), otp2Id.get());
 
@@ -133,7 +133,7 @@ public class CredentialModelTest extends AbstractTestRealmKeycloakTest {
             UserModel user = currentSession.users().getUserByUsername(realm, "test-user@localhost");
 
             // Assert priorities: otp2, password
-            List<CredentialModel> list = currentSession.userCredentialManager().getStoredCredentialsStream(realm, user)
+            List<CredentialModel> list = user.getUserCredentialManager().getStoredCredentialsStream()
                     .collect(Collectors.toList());
             assertOrder(list, otp1Id.get(), otp2Id.get());
         });

@@ -175,7 +175,7 @@ public class AccountCredentialResource {
                 .collect(Collectors.toList());
         Set<String> enabledCredentialTypes = getEnabledCredentialTypes(credentialProviders);
 
-        Stream<CredentialModel> modelsStream = includeUserCredentials ? session.userCredentialManager().getStoredCredentialsStream(realm, user) : Stream.empty();
+        Stream<CredentialModel> modelsStream = includeUserCredentials ? user.getUserCredentialManager().getStoredCredentialsStream() : Stream.empty();
         List<CredentialModel> models = modelsStream.collect(Collectors.toList());
 
         Function<CredentialProvider, CredentialContainer> toCredentialContainer = (credentialProvider) -> {

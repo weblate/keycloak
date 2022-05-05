@@ -638,7 +638,7 @@ public class UserResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Stream<CredentialRepresentation> credentials(){
         auth.users().requireManage(user);
-        return session.userCredentialManager().getStoredCredentialsStream(realm, user)
+        return user.getUserCredentialManager().getStoredCredentialsStream()
                 .map(ModelToRepresentation::toRepresentation)
                 .peek(credentialRepresentation -> credentialRepresentation.setSecretData(null));
     }
