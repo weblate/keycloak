@@ -39,7 +39,7 @@ public class RecoveryAuthnCodesCredentialProvider
     public CredentialModel createCredential(RealmModel realm, UserModel user,
             RecoveryAuthnCodesCredentialModel credentialModel) {
 
-        session.userCredentialManager().getStoredCredentialsByTypeStream(realm, user, getType()).findFirst()
+        user.getUserCredentialManager().getStoredCredentialsByTypeStream(getType()).findFirst()
                 .ifPresent(model -> deleteCredential(realm, user, model.getId()));
 
         return session.userCredentialManager().createCredential(realm, user, credentialModel);
@@ -95,14 +95,13 @@ public class RecoveryAuthnCodesCredentialProvider
 
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
-        return session.userCredentialManager().getStoredCredentialsByTypeStream(realm, user, credentialType).anyMatch(Objects::nonNull);
+        return user.getUserCredentialManager().getStoredCredentialsByTypeStream(credentialType).anyMatch(Objects::nonNull);
     }
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput credentialInput) {
         String rawInputRecoveryAuthnCode = credentialInput.getChallengeResponse();
-        Optional<CredentialModel> credential = session.userCredentialManager()
-                .getStoredCredentialsByTypeStream(realm, user, getType()).findFirst();
+        Optional<CredentialModel> credential = user.getUserCredentialManager().getStoredCredentialsByTypeStream(getType()).findFirst();
         if (credential.isPresent()) {
             RecoveryAuthnCodesCredentialModel credentialModel = RecoveryAuthnCodesCredentialModel
                     .createFromCredentialModel(credential.get());

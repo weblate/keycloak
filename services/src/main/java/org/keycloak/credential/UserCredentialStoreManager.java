@@ -76,12 +76,14 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
+        // TODO: no longer used in non-legacy code, can be removed
         return user.getUserCredentialManager().getStoredCredentialsByTypeStream(type);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public CredentialModel getStoredCredentialByNameAndType(RealmModel realm, UserModel user, String name, String type) {
+        // TODO: no longer used in non-legacy code, can be removed
         return user.getUserCredentialManager().getStoredCredentialByNameAndType(name, type);
     }
 

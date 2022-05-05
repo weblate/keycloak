@@ -50,7 +50,7 @@ public class TotpBean {
         this.uriBuilder = uriBuilder;
         this.enabled = user.getUserCredentialManager().isConfiguredFor(OTPCredentialModel.TYPE);
         if (enabled) {
-            otpCredentials = session.userCredentialManager().getStoredCredentialsByTypeStream(realm, user, OTPCredentialModel.TYPE)
+            otpCredentials = user.getUserCredentialManager().getStoredCredentialsByTypeStream(OTPCredentialModel.TYPE)
                     .collect(Collectors.toList());
         } else {
             otpCredentials = Collections.EMPTY_LIST;
