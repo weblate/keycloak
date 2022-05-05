@@ -93,6 +93,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput... inputs) {
+        // TODO: no longer used, can be removed
         return isValid(realm, user, Arrays.asList(inputs));
     }
 
@@ -111,6 +112,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public boolean isValid(RealmModel realm, UserModel user, List<CredentialInput> inputs) {
+        // TODO: no longer used, can be removed
         return user.getUserCredentialManager().isValid(inputs);
     }
 

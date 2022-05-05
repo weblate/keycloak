@@ -959,7 +959,7 @@ public class LDAPProvidersIntegrationTest extends AbstractLDAPTest {
                 .findFirst().orElse(null);
             Assert.assertNotNull(userCredentialValueModel);
             Assert.assertEquals(PasswordCredentialModel.TYPE, userCredentialValueModel.getType());
-            Assert.assertTrue(session.userCredentialManager().isValid(appRealm, user, cred));
+            Assert.assertTrue(user.getUserCredentialManager().isValid(cred));
 
             // LDAP password is still unchanged
             try {

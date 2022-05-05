@@ -601,7 +601,7 @@ public class AccountFormService extends AbstractSecuredLocalService {
             }
 
             UserCredentialModel cred = UserCredentialModel.password(password);
-            if (!session.userCredentialManager().isValid(realm, user, cred)) {
+            if (!user.getUserCredentialManager().isValid(cred)) {
                 setReferrerOnPage();
                 errorEvent.error(Errors.INVALID_USER_CREDENTIALS);
                 return account.setError(Status.OK, Messages.INVALID_PASSWORD_EXISTING).createResponse(AccountPages.PASSWORD);

@@ -216,7 +216,7 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
 
         boolean result = false;
         try {
-            result = session.userCredentialManager().isValid(context.getRealm(), user, cred);
+            result = user.getUserCredentialManager().isValid(cred);
         } catch (WebAuthnException wae) {
             setErrorResponse(context, WEBAUTHN_ERROR_AUTH_VERIFICATION, wae.getMessage());
             return;

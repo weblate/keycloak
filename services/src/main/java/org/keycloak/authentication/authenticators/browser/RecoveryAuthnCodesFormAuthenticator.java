@@ -28,10 +28,7 @@ import static org.keycloak.services.validation.Validation.FIELD_USERNAME;
 
 public class RecoveryAuthnCodesFormAuthenticator implements Authenticator {
 
-    private final UserCredentialManager userCredentialManager;
-
     public RecoveryAuthnCodesFormAuthenticator(KeycloakSession keycloakSession) {
-        this.userCredentialManager = keycloakSession.userCredentialManager();
     }
 
     @Override
@@ -61,7 +58,7 @@ public class RecoveryAuthnCodesFormAuthenticator implements Authenticator {
         RealmModel targetRealm = authnFlowContext.getRealm();
         UserModel authenticatedUser = authnFlowContext.getUser();
         if (!isDisabledByBruteForce(authnFlowContext, authenticatedUser)) {
-            boolean isValid = this.userCredentialManager.isValid(targetRealm, authenticatedUser,
+            boolean isValid = authenticatedUser.getUserCredentialManager().isValid(
                     UserCredentialModel.buildFromBackupAuthnCode(recoveryAuthnCodeUserInput.replace("-", "")));
             if (!isValid) {
                 Response responseChallenge = createLoginForm(authnFlowContext, true,
@@ -70,14 +67,14 @@ public class RecoveryAuthnCodesFormAuthenticator implements Authenticator {
                 authnFlowContext.failureChallenge(AuthenticationFlowError.INVALID_CREDENTIALS, responseChallenge);
             } else {
                 result = true;
-                Optional<CredentialModel> optUserCredentialFound = this.userCredentialManager.getStoredCredentialsByTypeStream(targetRealm,
-                        authenticatedUser, RecoveryAuthnCodesCredentialModel.TYPE).findFirst();
+                Optional<CredentialModel> optUserCredentialFound = authenticatedUser.getUserCredentialManager().getStoredCredentialsByTypeStream(
+                        RecoveryAuthnCodesCredentialModel.TYPE).findFirst();
                 RecoveryAuthnCodesCredentialModel recoveryCodeCredentialModel = null;
                 if (optUserCredentialFound.isPresent()) {
                     recoveryCodeCredentialModel = RecoveryAuthnCodesCredentialModel
                             .createFromCredentialModel(optUserCredentialFound.get());
                     if (recoveryCodeCredentialModel.allCodesUsed()) {
-                        this.userCredentialManager.removeStoredCredential(targetRealm, authenticatedUser,
+                        authenticatedUser.getUserCredentialManager().removeStoredCredentialById(
                                 recoveryCodeCredentialModel.getId());
                     }
                 }

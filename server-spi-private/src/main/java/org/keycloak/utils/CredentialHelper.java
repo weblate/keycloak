@@ -112,7 +112,7 @@ public class CredentialHelper {
 
         //If the type is HOTP, call verify once to consume the OTP used for registration and increase the counter.
         UserCredentialModel credential = new UserCredentialModel(credentialId, otpCredentialProvider.getType(), totpCode);
-        return session.userCredentialManager().isValid(realm, user, credential);
+        return user.getUserCredentialManager().isValid(credential);
     }
 
     public static void deleteOTPCredential(KeycloakSession session, RealmModel realm, UserModel user, String credentialId) {
