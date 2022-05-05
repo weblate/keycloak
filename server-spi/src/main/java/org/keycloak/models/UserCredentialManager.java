@@ -26,9 +26,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
+ * Manage the credentials for a user.
+ *
+ * @deprecated Instead of this class, use {@link UserModel#getUserCredentialManager()} instead.
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
  */
+@Deprecated
 public interface UserCredentialManager extends UserCredentialStore {
 
     /**
@@ -97,8 +101,7 @@ public interface UserCredentialManager extends UserCredentialStore {
      * @param realm
      * @param user
      * @return
-     * @deprecated Use {@link #getDisableableCredentialTypesStream(RealmModel, UserModel) getDisableableCredentialTypesStream}
-     * instead.
+     * @deprecated Use {@link UserModel#getUserCredentialManager()} and {@link SingleUserCredentialManager#getDisableableCredentialTypesStream()} instead.
      */
     @Deprecated
     Set<String> getDisableableCredentialTypes(RealmModel realm, UserModel user);
@@ -112,8 +115,7 @@ public interface UserCredentialManager extends UserCredentialStore {
      * @return a non-null {@link Stream} of credential types.
      */
     default Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
-        Set<String> result = this.getDisableableCredentialTypes(realm, user);
-        return result != null ? result.stream() : Stream.empty();
+        return user.getUserCredentialManager().getDisableableCredentialTypesStream();
     }
 
     /**
@@ -186,7 +188,7 @@ public interface UserCredentialManager extends UserCredentialStore {
     interface Streams extends UserCredentialManager, UserCredentialStore.Streams {
         @Override
         default Set<String> getDisableableCredentialTypes(RealmModel realm, UserModel user) {
-            return this.getDisableableCredentialTypesStream(realm, user).collect(Collectors.toSet());
+            return user.getUserCredentialManager().getDisableableCredentialTypesStream().collect(Collectors.toSet());
         }
 
         @Override

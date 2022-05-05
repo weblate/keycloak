@@ -136,6 +136,7 @@ public class UserCredentialStoreManager
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.getUserCredentialManager() instead
     public Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
+        // TODO: no longer used, can be removed
         return user.getUserCredentialManager().getDisableableCredentialTypesStream();
     }
 

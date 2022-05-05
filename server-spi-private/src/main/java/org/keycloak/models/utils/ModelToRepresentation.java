@@ -221,8 +221,8 @@ public class ModelToRepresentation {
         rep.setEnabled(user.isEnabled());
         rep.setEmailVerified(user.isEmailVerified());
         rep.setTotp(user.getUserCredentialManager().isConfiguredFor(OTPCredentialModel.TYPE));
-        rep.setDisableableCredentialTypes(session.userCredentialManager()
-                .getDisableableCredentialTypesStream(realm, user).collect(Collectors.toSet()));
+        rep.setDisableableCredentialTypes(user.getUserCredentialManager()
+                .getDisableableCredentialTypesStream().collect(Collectors.toSet()));
         rep.setFederationLink(user.getFederationLink());
         rep.setNotBefore(session.users().getNotBeforeOfUser(realm, user));
         rep.setRequiredActions(user.getRequiredActionsStream().collect(Collectors.toList()));
