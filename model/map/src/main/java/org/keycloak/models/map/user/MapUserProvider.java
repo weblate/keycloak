@@ -110,7 +110,7 @@ public class MapUserProvider implements UserProvider.Streams {
             }
 
             @Override
-            public SingleUserCredentialManager getUserCredentialManager() {
+            public SingleUserCredentialManager userCredentialManager() {
                 return new MapSingleUserCredentialManager(session, realm, this, entity);
             }
         };

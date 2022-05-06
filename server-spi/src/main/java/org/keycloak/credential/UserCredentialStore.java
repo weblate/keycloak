@@ -79,7 +79,7 @@ public interface UserCredentialStore extends Provider {
      * @return a non-null {@link Stream} of credentials.
      */
     default Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
-        List<CredentialModel> result = user.getUserCredentialManager().getStoredCredentialsByTypeStream(type).collect(Collectors.toList());
+        List<CredentialModel> result = user.userCredentialManager().getStoredCredentialsByTypeStream(type).collect(Collectors.toList());
         return result != null ? result.stream() : Stream.empty();
     }
 
@@ -98,7 +98,7 @@ public interface UserCredentialStore extends Provider {
     interface Streams extends UserCredentialStore {
         @Override
         default List<CredentialModel> getStoredCredentials(RealmModel realm, UserModel user) {
-            return user.getUserCredentialManager().getStoredCredentialsStream().collect(Collectors.toList());
+            return user.userCredentialManager().getStoredCredentialsStream().collect(Collectors.toList());
         }
 
         @Override
@@ -106,7 +106,7 @@ public interface UserCredentialStore extends Provider {
 
         @Override
         default List<CredentialModel> getStoredCredentialsByType(RealmModel realm, UserModel user, String type) {
-            return user.getUserCredentialManager().getStoredCredentialsByTypeStream(type).collect(Collectors.toList());
+            return user.userCredentialManager().getStoredCredentialsByTypeStream(type).collect(Collectors.toList());
         }
 
         @Override

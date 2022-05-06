@@ -298,7 +298,7 @@ public interface UserModel extends RoleMapperModel {
     String getServiceAccountClientLink();
     void setServiceAccountClientLink(String clientInternalId);
 
-    SingleUserCredentialManager getUserCredentialManager();
+    SingleUserCredentialManager userCredentialManager();
 
     enum RequiredAction {
         VERIFY_EMAIL,

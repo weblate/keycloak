@@ -257,7 +257,7 @@ public class InMemoryUserAdapter extends UserModelDefaultMethods.Streams {
     }
 
     @Override
-    public SingleUserCredentialManager getUserCredentialManager() {
+    public SingleUserCredentialManager userCredentialManager() {
         return new LegacySingleUserCredentialManager(session, realm, this);
     }
 

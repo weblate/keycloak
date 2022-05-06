@@ -786,7 +786,7 @@ public class LDAPProvidersIntegrationTest extends AbstractLDAPTest {
             }
             try {
                 UserCredentialModel cred = UserCredentialModel.password("PoopyPoop1", true);
-                user.getUserCredentialManager().updateCredential(cred);
+                user.userCredentialManager().updateCredential(cred);
                 Assert.fail("should fail");
             } catch (ReadOnlyException e) {
 
@@ -961,12 +961,12 @@ public class LDAPProvidersIntegrationTest extends AbstractLDAPTest {
             Assert.assertEquals(user.getFederationLink(), ctx.getLdapModel().getId());
 
             UserCredentialModel cred = UserCredentialModel.password("Candycand1", true);
-            user.getUserCredentialManager().updateCredential(cred);
-            CredentialModel userCredentialValueModel = user.getUserCredentialManager().getStoredCredentialsByTypeStream(PasswordCredentialModel.TYPE)
+            user.userCredentialManager().updateCredential(cred);
+            CredentialModel userCredentialValueModel = user.userCredentialManager().getStoredCredentialsByTypeStream(PasswordCredentialModel.TYPE)
                 .findFirst().orElse(null);
             Assert.assertNotNull(userCredentialValueModel);
             Assert.assertEquals(PasswordCredentialModel.TYPE, userCredentialValueModel.getType());
-            Assert.assertTrue(user.getUserCredentialManager().isValid(cred));
+            Assert.assertTrue(user.userCredentialManager().isValid(cred));
 
             // LDAP password is still unchanged
             try {

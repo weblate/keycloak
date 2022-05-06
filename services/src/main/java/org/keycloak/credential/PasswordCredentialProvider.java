@@ -49,7 +49,7 @@ public class PasswordCredentialProvider implements CredentialProvider<PasswordCr
     }
 
     public PasswordCredentialModel getPassword(RealmModel realm, UserModel user) {
-        List<CredentialModel> passwords = user.getUserCredentialManager().getStoredCredentialsByTypeStream(getType()).collect(Collectors.toList());
+        List<CredentialModel> passwords = user.userCredentialManager().getStoredCredentialsByTypeStream(getType()).collect(Collectors.toList());
         if (passwords.isEmpty()) return null;
         return PasswordCredentialModel.createFromCredentialModel(passwords.get(0));
     }
@@ -83,34 +83,34 @@ public class PasswordCredentialProvider implements CredentialProvider<PasswordCr
             credentialModel.setCreatedDate(Time.currentTimeMillis());
         }
         if (oldPassword == null) { // no password exists --> create new
-            createdCredential = user.getUserCredentialManager().createStoredCredential(credentialModel);
+            createdCredential = user.userCredentialManager().createStoredCredential(credentialModel);
         } else { // password exists --> update existing
             credentialModel.setId(oldPassword.getId());
-            user.getUserCredentialManager().updateStoredCredential(credentialModel);
+            user.userCredentialManager().updateStoredCredential(credentialModel);
             createdCredential = credentialModel;
 
             // 2) add a password history item based on the old password
             if (expiredPasswordsPolicyValue > 1) {
                 oldPassword.setId(null);
                 oldPassword.setType(PasswordCredentialModel.PASSWORD_HISTORY);
-                user.getUserCredentialManager().createStoredCredential(oldPassword);
+                user.userCredentialManager().createStoredCredential(oldPassword);
             }
         }
         
         // 3) remove old password history items
         final int passwordHistoryListMaxSize = Math.max(0, expiredPasswordsPolicyValue - 1);
-        user.getUserCredentialManager().getStoredCredentialsByTypeStream(PasswordCredentialModel.PASSWORD_HISTORY)
+        user.userCredentialManager().getStoredCredentialsByTypeStream(PasswordCredentialModel.PASSWORD_HISTORY)
                 .sorted(CredentialModel.comparingByStartDateDesc())
                 .skip(passwordHistoryListMaxSize)
                 .collect(Collectors.toList())
-                .forEach(p -> user.getUserCredentialManager().removeStoredCredentialById(p.getId()));
+                .forEach(p -> user.userCredentialManager().removeStoredCredentialById(p.getId()));
 
         return createdCredential;
     }
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
-        return user.getUserCredentialManager().removeStoredCredentialById(credentialId);
+        return user.userCredentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class PasswordCredentialProvider implements CredentialProvider<PasswordCr
         newPassword.setId(password.getId());
         newPassword.setCreatedDate(password.getCreatedDate());
         newPassword.setUserLabel(password.getUserLabel());
-        user.getUserCredentialManager().updateStoredCredential(newPassword);
+        user.userCredentialManager().updateStoredCredential(newPassword);
 
         return true;
     }
@@ -215,7 +215,7 @@ public class PasswordCredentialProvider implements CredentialProvider<PasswordCr
 
         // Check if we are creating or updating password
         UserModel user = metadataContext.getUser();
-        if (user != null && user.getUserCredentialManager().isConfiguredFor(getType())) {
+        if (user != null && user.userCredentialManager().isConfiguredFor(getType())) {
             metadataBuilder.updateAction(UserModel.RequiredAction.UPDATE_PASSWORD.toString());
         } else {
             metadataBuilder.createAction(UserModel.RequiredAction.UPDATE_PASSWORD.toString());

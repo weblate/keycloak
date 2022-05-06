@@ -167,7 +167,7 @@ public class PassThroughFederatedUserStorageProvider implements
             }
 
             @Override
-            public SingleUserCredentialManager getUserCredentialManager() {
+            public SingleUserCredentialManager userCredentialManager() {
                 return new LegacySingleUserCredentialManager(session, realm, this);
             }
         };

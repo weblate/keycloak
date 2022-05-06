@@ -216,7 +216,7 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
 
         boolean result = false;
         try {
-            result = user.getUserCredentialManager().isValid(cred);
+            result = user.userCredentialManager().isValid(cred);
         } catch (WebAuthnException wae) {
             setErrorResponse(context, WEBAUTHN_ERROR_AUTH_VERIFICATION, wae.getMessage());
             return;
@@ -244,7 +244,7 @@ public class WebAuthnAuthenticator implements Authenticator, CredentialValidator
     }
 
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {
-        return user.getUserCredentialManager().isConfiguredFor(getCredentialType());
+        return user.userCredentialManager().isConfiguredFor(getCredentialType());
     }
 
     public void setRequiredActions(KeycloakSession session, RealmModel realm, UserModel user) {

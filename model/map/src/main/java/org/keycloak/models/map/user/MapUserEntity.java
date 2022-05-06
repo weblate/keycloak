@@ -248,8 +248,7 @@ public interface MapUserEntity extends UpdatableEntity, AbstractEntity, EntityWi
     Long getNotBefore();
     void setNotBefore(Long notBefore);
 
-    @IgnoreForEntityImplementationGenerator
-    default MapSingleUserCredentialManagerEntity getUserCredentialManager() {
+    default MapSingleUserCredentialManagerEntity userCredentialManager() {
         return new DefaultMapSingleUserCredentialManagerEntity();
     }
 }

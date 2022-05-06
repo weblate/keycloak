@@ -145,7 +145,7 @@ public class UserMapStorage implements UserLookupProvider.Streams, UserStoragePr
                 }
 
                 @Override
-                public SingleUserCredentialManager getUserCredentialManager() {
+                public SingleUserCredentialManager userCredentialManager() {
                     return new LegacySingleUserCredentialManager(session, realm, this);
                 }
             };

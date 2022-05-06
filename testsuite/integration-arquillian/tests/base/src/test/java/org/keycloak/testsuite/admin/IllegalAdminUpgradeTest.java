@@ -82,27 +82,27 @@ public class IllegalAdminUpgradeTest extends AbstractKeycloakTest {
         UserModel realmUser = session.users().addUser(realm, "userAdmin");
         realmUser.grantRole(realmManageUsers);
         realmUser.setEnabled(true);
-        realmUser.getUserCredentialManager().updateCredential(UserCredentialModel.password("password"));
+        realmUser.userCredentialManager().updateCredential(UserCredentialModel.password("password"));
 
         UserModel masterUser = session.users().addUser(master, "userAdmin");
         masterUser.grantRole(masterManageUsers);
         masterUser.setEnabled(true);
-        masterUser.getUserCredentialManager().updateCredential(UserCredentialModel.password("password"));
+        masterUser.userCredentialManager().updateCredential(UserCredentialModel.password("password"));
 
         UserModel masterAdmin = session.users().addUser(master, "masterAdmin");
         masterAdmin.grantRole(masterMasterManageUSers);
         masterAdmin.setEnabled(true);
-        masterAdmin.getUserCredentialManager().updateCredential(UserCredentialModel.password("password"));
+        masterAdmin.userCredentialManager().updateCredential(UserCredentialModel.password("password"));
 
         UserModel user = session.users().addUser(master, "user");
         user.grantRole(masterManageUsers);
         user.setEnabled(true);
-        user.getUserCredentialManager().updateCredential(UserCredentialModel.password("password"));
+        user.userCredentialManager().updateCredential(UserCredentialModel.password("password"));
 
         user = session.users().addUser(realm, "user");
         user.grantRole(realmManageUsers);
         user.setEnabled(true);
-        user.getUserCredentialManager().updateCredential(UserCredentialModel.password("password"));
+        user.userCredentialManager().updateCredential(UserCredentialModel.password("password"));
     }
 
     //@Test

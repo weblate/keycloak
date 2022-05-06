@@ -518,7 +518,7 @@ public class UserAdapter implements UserModel.Streams, JpaModel<UserEntity> {
     }
 
     @Override
-    public SingleUserCredentialManager getUserCredentialManager() {
+    public SingleUserCredentialManager userCredentialManager() {
         return new LegacySingleUserCredentialManager(session, realm, this);
     }
 

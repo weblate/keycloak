@@ -287,12 +287,12 @@ public class UserAdapter implements CachedUserModel.Streams {
     }
 
     @Override
-    public SingleUserCredentialManager getUserCredentialManager() {
+    public SingleUserCredentialManager userCredentialManager() {
         if (updated == null) {
             updated = modelSupplier.get();
             if (updated == null) throw new IllegalStateException("Not found in database");
         }
-        return new SingleUserCredentialManagerCacheAdapter(updated.getUserCredentialManager()) {
+        return new SingleUserCredentialManagerCacheAdapter(updated.userCredentialManager()) {
             @Override
             public CredentialModel getStoredCredentialById(String id) {
                 if (!userRegisteredForInvalidation) {

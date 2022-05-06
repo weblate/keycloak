@@ -211,8 +211,8 @@ public class UserModelDelegate implements UserModel.Streams {
     }
 
     @Override
-    public SingleUserCredentialManager getUserCredentialManager() {
-        return delegate.getUserCredentialManager();
+    public SingleUserCredentialManager userCredentialManager() {
+        return delegate.userCredentialManager();
     }
 
     public UserModel getDelegate() {
