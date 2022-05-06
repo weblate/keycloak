@@ -167,59 +167,69 @@ public class DefaultKeycloakSession implements KeycloakSession {
     }
 
     @Override
-    @Deprecated // put deprecated on the interface
+    @Deprecated
     public UserProvider userLocalStorage() {
         // TODO: if we would call users() here, we could get the cache in legacy mode instead and would then loop
+        //   Also: this is still called in some places to avoid calling the federated storage
         return getProvider(UserProvider.class);
     }
 
     @Override
-    @Deprecated // put deprecated on the interface (all *LocalStorage, all *Managers)
+    @Deprecated
     public RealmProvider realmLocalStorage() {
         return realms();
     }
 
     @Override
+    @Deprecated
     public ClientProvider clientLocalStorage() {
         return clients();
     }
 
     @Override
+    @Deprecated
     public ClientScopeProvider clientScopeLocalStorage() {
         return clientScopes();
     }
 
     @Override
+    @Deprecated
     public GroupProvider groupLocalStorage() {
         return groups();
     }
 
     @Override
+    @Deprecated
     public ClientProvider clientStorageManager() {
         return clients();
     }
 
     @Override
+    @Deprecated
     public ClientScopeProvider clientScopeStorageManager() {
         return clientScopes();
     }
 
     @Override
+    @Deprecated
     public RoleProvider roleLocalStorage() {
         return roles();
     }
 
     @Override
+    @Deprecated
     public RoleProvider roleStorageManager() {
         return roles();
     }
 
     @Override
+    @Deprecated
     public GroupProvider groupStorageManager() {
         return groups();
     }
 
     @Override
+    @Deprecated
     public UserProvider userStorageManager() {
         return users();
     }
