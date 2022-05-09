@@ -80,11 +80,14 @@ import static org.keycloak.models.utils.RepresentationToModel.importGroup;
 import static org.keycloak.models.utils.RepresentationToModel.importRoles;
 
 /**
+ * This wraps the functionality about export/import for legacy storage. This will be handled differently for the new map storage,
+ * therefore, it has been extracted.
+ *
  * @author Alexander Schwartz
  */
 public class LegacyExportImportManager implements ExportImportManager {
     private final KeycloakSession session;
-    private static Logger logger = Logger.getLogger(LegacyExportImportManager.class);
+    private static final Logger logger = Logger.getLogger(LegacyExportImportManager.class);
 
     public LegacyExportImportManager(KeycloakSession session) {
         this.session = session;

@@ -19,11 +19,12 @@ package org.keycloak.models.map.user;
 
 import org.keycloak.models.CredentialValidationOutput;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Output of credential validation
+ * Output of a credential validation.
  *
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
@@ -40,7 +41,7 @@ public class MapCredentialValidationOutput<V> {
     }
 
     public static MapCredentialValidationOutput<?> failed() {
-        return new MapCredentialValidationOutput<Void>(null, CredentialValidationOutput.Status.FAILED, new HashMap<>());
+        return new MapCredentialValidationOutput<Void>(null, CredentialValidationOutput.Status.FAILED, Collections.emptyMap());
     }
 
     public V getAuthenticatedUser() {

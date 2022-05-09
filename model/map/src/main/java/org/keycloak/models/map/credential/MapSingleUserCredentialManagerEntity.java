@@ -27,7 +27,21 @@ import java.util.List;
  * @author Alexander Schwartz
  */
 public interface MapSingleUserCredentialManagerEntity {
+
+    /**
+     * Validate the credentials of a user.
+     * Will remove all inputs from the list that have been successfully validated, all remaining entries
+     * weren't validated. An empty list signals to the caller that authentication has completed successfully.
+     *
+     * @param inputs Credential inputs as provided by a user
+     */
     void validateCredentials(List<CredentialInput> inputs);
 
-     boolean updateCredential(CredentialInput input);
+    /**
+     * Update the credentials for a user with the input provided by the user for this store.
+     * @param input new credentials as provided by the user
+     * @return true if the credential has been updated successfully, false otherwise. False might indicate that the
+     * credential type isn't supported of the new credentials aren't valid.
+     */
+    boolean updateCredential(CredentialInput input);
 }

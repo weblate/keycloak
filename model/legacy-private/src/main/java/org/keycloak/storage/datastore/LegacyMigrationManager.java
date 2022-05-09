@@ -48,10 +48,13 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
+ * This wraps the functionality for migrations of the legacy storage. This will be handled differently for the new map storage,
+ * therefore, it has been extracted.
+ *
  * @author Alexander Schwartz
  */
 public class LegacyMigrationManager implements MigrationManager {
-    private static Logger logger = Logger.getLogger(LegacyMigrationManager.class);
+    private static final Logger logger = Logger.getLogger(LegacyMigrationManager.class);
 
     private static final Migration[] migrations = {
             new MigrateTo1_2_0(),

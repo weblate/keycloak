@@ -40,8 +40,8 @@ import java.util.stream.Stream;
  * Handling credentials for a given user.
  *
  * This serves as a wrapper to specific strategies. The wrapping code implements the logic for {@link CredentialInputUpdater}s
- * and {@link CredentialInputValidator}s. Storage specific strategies can be added like for example in
- * org.keycloak.models.map.credential.MapSingleUserCredentialManagerStrategy.
+ * and {@link CredentialInputValidator}s. Storage specific strategies can be added, like for example, in
+ * {@link MapSingleUserCredentialManagerStrategy}.
  *
  * @author Alexander Schwartz
  */

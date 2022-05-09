@@ -5,6 +5,8 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.representations.idm.RealmRepresentation;
 
 /**
+ * Manage importing and updating of realms for the legacy store.
+ *
  * @author Alexander Schwartz
  */
 public interface ExportImportManager {

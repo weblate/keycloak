@@ -96,7 +96,7 @@ public class LegacySingleUserCredentialManagerStrategy extends AbstractStorageMa
         return getStoreForUser(user).moveCredentialTo(realm, user, id, newPreviousCredentialId);
     }
 
-    protected UserCredentialStore getStoreForUser(UserModel user) {
+    private UserCredentialStore getStoreForUser(UserModel user) {
         LegacyStoreManagers p = (LegacyStoreManagers) session.getProvider(DatastoreProvider.class);
         if (StorageId.isLocalStorage(user.getId())) {
             return (UserCredentialStore) p.userLocalStorage();

@@ -16,11 +16,8 @@
  */
 package org.keycloak.models.map.storage;
 
-import org.keycloak.credential.CredentialInput;
 import org.keycloak.models.KeycloakTransaction;
-import org.keycloak.models.RealmModel;
 import org.keycloak.models.map.common.AbstractEntity;
-import org.keycloak.models.map.user.MapCredentialValidationOutput;
 
 import java.util.stream.Stream;
 
