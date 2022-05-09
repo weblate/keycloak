@@ -2,7 +2,7 @@ package org.keycloak.models.cache.infinispan;
 
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialModel;
-import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.SingleEntityCredentialManager;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -10,12 +10,12 @@ import java.util.stream.Stream;
 /**
  * @author Alexander Schwartz
  */
-public abstract class SingleUserCredentialManagerCacheAdapter implements SingleUserCredentialManager {
+public abstract class SingleEntityCredentialManagerCacheAdapter implements SingleEntityCredentialManager {
 
-    private final SingleUserCredentialManager singleUserCredentialManager;
+    private final SingleEntityCredentialManager singleEntityCredentialManager;
 
-    protected SingleUserCredentialManagerCacheAdapter(SingleUserCredentialManager singleUserCredentialManager) {
-        this.singleUserCredentialManager = singleUserCredentialManager;
+    protected SingleEntityCredentialManagerCacheAdapter(SingleEntityCredentialManager singleEntityCredentialManager) {
+        this.singleEntityCredentialManager = singleEntityCredentialManager;
     }
 
     public abstract void invalidateCacheForUser();
@@ -25,95 +25,95 @@ public abstract class SingleUserCredentialManagerCacheAdapter implements SingleU
         // validating a password might still update its hashes, similar logic might apply to OTP logic
         // instead of having each
         invalidateCacheForUser();
-        return singleUserCredentialManager.isValid(inputs);
+        return singleEntityCredentialManager.isValid(inputs);
     }
 
     @Override
     public boolean updateCredential(CredentialInput input) {
         invalidateCacheForUser();
-        return singleUserCredentialManager.updateCredential(input);
+        return singleEntityCredentialManager.updateCredential(input);
     }
 
     @Override
     public void updateStoredCredential(CredentialModel cred) {
         invalidateCacheForUser();
-        singleUserCredentialManager.updateStoredCredential(cred);
+        singleEntityCredentialManager.updateStoredCredential(cred);
     }
 
     @Override
     public CredentialModel createStoredCredential(CredentialModel cred) {
         invalidateCacheForUser();
-        return singleUserCredentialManager.createStoredCredential(cred);
+        return singleEntityCredentialManager.createStoredCredential(cred);
     }
 
     @Override
     public boolean removeStoredCredentialById(String id) {
         invalidateCacheForUser();
-        return singleUserCredentialManager.removeStoredCredentialById(id);
+        return singleEntityCredentialManager.removeStoredCredentialById(id);
     }
 
     @Override
     public CredentialModel getStoredCredentialById(String id) {
-        return singleUserCredentialManager.getStoredCredentialById(id);
+        return singleEntityCredentialManager.getStoredCredentialById(id);
     }
 
     @Override
     public Stream<CredentialModel> getStoredCredentialsStream() {
-        return singleUserCredentialManager.getStoredCredentialsStream();
+        return singleEntityCredentialManager.getStoredCredentialsStream();
     }
 
     @Override
     public Stream<CredentialModel> getStoredCredentialsByTypeStream(String type) {
-        return singleUserCredentialManager.getStoredCredentialsByTypeStream(type);
+        return singleEntityCredentialManager.getStoredCredentialsByTypeStream(type);
     }
 
     @Override
     public CredentialModel getStoredCredentialByNameAndType(String name, String type) {
-        return singleUserCredentialManager.getStoredCredentialByNameAndType(name, type);
+        return singleEntityCredentialManager.getStoredCredentialByNameAndType(name, type);
     }
 
     @Override
     public boolean moveStoredCredentialTo(String id, String newPreviousCredentialId) {
         invalidateCacheForUser();
-        return singleUserCredentialManager.moveStoredCredentialTo(id, newPreviousCredentialId);
+        return singleEntityCredentialManager.moveStoredCredentialTo(id, newPreviousCredentialId);
     }
 
     @Override
     public void updateCredentialLabel(String credentialId, String userLabel) {
         invalidateCacheForUser();
-        singleUserCredentialManager.updateCredentialLabel(credentialId, userLabel);
+        singleEntityCredentialManager.updateCredentialLabel(credentialId, userLabel);
     }
 
     @Override
     public void disableCredentialType(String credentialType) {
         invalidateCacheForUser();
-        singleUserCredentialManager.disableCredentialType(credentialType);
+        singleEntityCredentialManager.disableCredentialType(credentialType);
     }
 
     @Override
     public Stream<String> getDisableableCredentialTypesStream() {
-        return singleUserCredentialManager.getDisableableCredentialTypesStream();
+        return singleEntityCredentialManager.getDisableableCredentialTypesStream();
     }
 
     @Override
     public boolean isConfiguredFor(String type) {
-        return singleUserCredentialManager.isConfiguredFor(type);
+        return singleEntityCredentialManager.isConfiguredFor(type);
     }
 
     @Override
     public boolean isConfiguredLocally(String type) {
-        return singleUserCredentialManager.isConfiguredLocally(type);
+        return singleEntityCredentialManager.isConfiguredLocally(type);
     }
 
     @Override
     public Stream<String> getConfiguredUserStorageCredentialTypesStream() {
-        return singleUserCredentialManager.getConfiguredUserStorageCredentialTypesStream();
+        return singleEntityCredentialManager.getConfiguredUserStorageCredentialTypesStream();
     }
 
     @Override
     public CredentialModel createCredentialThroughProvider(CredentialModel model) {
         invalidateCacheForUser();
-        return singleUserCredentialManager.createCredentialThroughProvider(model);
+        return singleEntityCredentialManager.createCredentialThroughProvider(model);
     }
 
 }

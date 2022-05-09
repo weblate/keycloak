@@ -32,16 +32,16 @@ import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Strategy for {@link LegacySingleUserCredentialManager} to handle classic local storage including federation.
+ * Strategy for {@link LegacySingleEntityCredentialManager} to handle classic local storage including federation.
  *
  * @author Alexander Schwartz
  */
-public class LegacySingleUserCredentialManagerStrategy extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleUserCredentialManagerStrategy {
+public class LegacySingleEntityCredentialManagerStrategy extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleEntityCredentialManagerStrategy {
 
     private final UserModel user;
     private final RealmModel realm;
 
-    public LegacySingleUserCredentialManagerStrategy(KeycloakSession session, RealmModel realm, UserModel user) {
+    public LegacySingleEntityCredentialManagerStrategy(KeycloakSession session, RealmModel realm, UserModel user) {
         super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.realm = realm;

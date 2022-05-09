@@ -70,13 +70,13 @@ public class WebAuthnCredentialProvider implements CredentialProvider<WebAuthnCr
             credentialModel.setCreatedDate(Time.currentTimeMillis());
         }
 
-        return user.userCredentialManager().createStoredCredential(credentialModel);
+        return user.credentialManager().createStoredCredential(credentialModel);
     }
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
         logger.debugv("Delete WebAuthn credential. username = {0}, credentialId = {1}", user.getUsername(), credentialId);
-        return user.userCredentialManager().removeStoredCredentialById(credentialId);
+        return user.credentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override
@@ -169,7 +169,7 @@ public class WebAuthnCredentialProvider implements CredentialProvider<WebAuthnCr
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
         if (!supportsCredentialType(credentialType)) return false;
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(credentialType).count() > 0;
+        return user.credentialManager().getStoredCredentialsByTypeStream(credentialType).count() > 0;
     }
 
 
@@ -207,7 +207,7 @@ public class WebAuthnCredentialProvider implements CredentialProvider<WebAuthnCr
 
                     logger.debugv("response.getAuthenticatorData().getFlags() = {0}", authenticationData.getAuthenticatorData().getFlags());
 
-                    CredentialModel credModel = user.userCredentialManager().getStoredCredentialById(auth.getCredentialDBId());
+                    CredentialModel credModel = user.credentialManager().getStoredCredentialById(auth.getCredentialDBId());
                     WebAuthnCredentialModel webAuthnCredModel = getCredentialFromModel(credModel);
 
                     // update authenticator counter
@@ -216,7 +216,7 @@ public class WebAuthnCredentialProvider implements CredentialProvider<WebAuthnCr
                     long count = auth.getCount();
                     if (count > 0) {
                         webAuthnCredModel.updateCounter(count + 1);
-                        user.userCredentialManager().updateStoredCredential(webAuthnCredModel);
+                        user.credentialManager().updateStoredCredential(webAuthnCredModel);
                     }
 
                     logger.debugf("Successfully validated WebAuthn credential for user %s", user.getUsername());
@@ -241,7 +241,7 @@ public class WebAuthnCredentialProvider implements CredentialProvider<WebAuthnCr
 
 
     private List<WebAuthnCredentialModelInput> getWebAuthnCredentialModelList(RealmModel realm, UserModel user) {
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(getType())
+        return user.credentialManager().getStoredCredentialsByTypeStream(getType())
                 .map(this::getCredentialInputFromCredentialModel)
                 .collect(Collectors.toList());
     }

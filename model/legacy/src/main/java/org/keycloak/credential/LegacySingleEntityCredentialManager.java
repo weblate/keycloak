@@ -15,21 +15,18 @@
  * limitations under the License.
  */
 
-package org.keycloak.models.map.credential;
+package org.keycloak.credential;
 
 import org.keycloak.common.util.reflections.Types;
-import org.keycloak.credential.CredentialInput;
-import org.keycloak.credential.CredentialInputUpdater;
-import org.keycloak.credential.CredentialInputValidator;
-import org.keycloak.credential.CredentialModel;
-import org.keycloak.credential.CredentialProvider;
-import org.keycloak.credential.CredentialProviderFactory;
-import org.keycloak.credential.SingleUserCredentialManagerStrategy;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.SingleEntityCredentialManager;
 import org.keycloak.models.UserModel;
-import org.keycloak.models.map.user.MapUserEntity;
+import org.keycloak.storage.AbstractStorageManager;
+import org.keycloak.storage.StorageId;
+import org.keycloak.storage.UserStorageProvider;
+import org.keycloak.storage.UserStorageProviderFactory;
+import org.keycloak.storage.UserStorageProviderModel;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -37,26 +34,25 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
- * Handling credentials for a given user.
+ * Handling credentials for a given user for the legacy store.
  *
- * This serves as a wrapper to specific strategies. The wrapping code implements the logic for {@link CredentialInputUpdater}s
- * and {@link CredentialInputValidator}s. Storage specific strategies can be added, like for example, in
- * {@link MapSingleUserCredentialManagerStrategy}.
+ * Its companion is the MapSingleUserCredentialManagerStrategy that doesn't contain storage related elements.
  *
  * @author Alexander Schwartz
  */
-public class MapSingleUserCredentialManager implements SingleUserCredentialManager {
+public class LegacySingleEntityCredentialManager extends AbstractStorageManager<UserStorageProvider, UserStorageProviderModel> implements SingleEntityCredentialManager {
 
     private final UserModel user;
     private final KeycloakSession session;
     private final RealmModel realm;
-    private final SingleUserCredentialManagerStrategy strategy;
+    private final LegacySingleEntityCredentialManagerStrategy strategy;
 
-    public MapSingleUserCredentialManager(KeycloakSession session, RealmModel realm, UserModel user, MapUserEntity entity) {
+    public LegacySingleEntityCredentialManager(KeycloakSession session, RealmModel realm, UserModel user) {
+        super(session, UserStorageProviderFactory.class, UserStorageProvider.class, UserStorageProviderModel::new, "user");
         this.user = user;
         this.session = session;
         this.realm = realm;
-        this.strategy = new MapSingleUserCredentialManagerStrategy(entity);
+        this.strategy = new LegacySingleEntityCredentialManagerStrategy(session, realm, user);
     }
 
     @Override
@@ -66,6 +62,17 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
         }
 
         List<CredentialInput> toValidate = new LinkedList<>(inputs);
+
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return false;
+
+            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
+            if (validator != null) {
+                validate(realm, user, toValidate, validator);
+            }
+        }
 
         strategy.validateCredentials(toValidate);
 
@@ -77,6 +84,19 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public boolean updateCredential(CredentialInput input) {
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (!StorageId.isLocalStorage(user.getId())) throwExceptionIfInvalidUser(user);
+
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return false;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater != null && updater.supportsCredentialType(input.getType())) {
+                if (updater.updateCredential(realm, user, input)) return true;
+            }
+        }
+
         return strategy.updateCredential(input) ||
                 getCredentialProviders(session, CredentialInputUpdater.class)
                         .filter(updater -> updater.supportsCredentialType(input.getType()))
@@ -137,6 +157,18 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public void disableCredentialType(String credentialType) {
+        String providerId = StorageId.isLocalStorage(user.getId()) ? user.getFederationLink() : StorageId.providerId(user.getId());
+        if (!StorageId.isLocalStorage(user.getId())) throwExceptionIfInvalidUser(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater.supportsCredentialType(credentialType)) {
+                updater.disableCredentialType(realm, user, credentialType);
+            }
+        }
+
         getCredentialProviders(session, CredentialInputUpdater.class)
                 .filter(updater -> updater.supportsCredentialType(credentialType))
                 .forEach(updater -> updater.disableCredentialType(realm, user, credentialType));
@@ -144,14 +176,32 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public Stream<String> getDisableableCredentialTypesStream() {
-        // TODO: ask the store
-        return getCredentialProviders(session, CredentialInputUpdater.class)
-                        .flatMap(updater -> updater.getDisableableCredentialTypesStream(realm, user));
+        Stream<String> types = Stream.empty();
+        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return types;
+
+            CredentialInputUpdater updater = getStorageProviderInstance(model, CredentialInputUpdater.class);
+            if (updater != null) types = updater.getDisableableCredentialTypesStream(realm, user);
+        }
+
+        return Stream.concat(types, getCredentialProviders(session, CredentialInputUpdater.class)
+                        .flatMap(updater -> updater.getDisableableCredentialTypesStream(realm, user)))
+                .distinct();
     }
 
     @Override
     public boolean isConfiguredFor(String type) {
-        // TODO: ask the store
+        UserStorageCredentialConfigured userStorageConfigured = isConfiguredThroughUserStorage(realm, user, type);
+
+        // Check if we can rely just on userStorage to decide if credential is configured for the user or not
+        switch (userStorageConfigured) {
+            case CONFIGURED: return true;
+            case USER_STORAGE_DISABLED: return false;
+        }
+
+        // Check locally as a fallback
         return isConfiguredLocally(type);
     }
 
@@ -163,7 +213,6 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
 
     @Override
     public Stream<String> getConfiguredUserStorageCredentialTypesStream() {
-        // TODO ask the store
         return getCredentialProviders(session, CredentialProvider.class).map(CredentialProvider::getType)
                 .filter(credentialType -> UserStorageCredentialConfigured.CONFIGURED == isConfiguredThroughUserStorage(realm, user, credentialType));
     }
@@ -187,6 +236,17 @@ public class MapSingleUserCredentialManager implements SingleUserCredentialManag
     }
 
     private UserStorageCredentialConfigured isConfiguredThroughUserStorage(RealmModel realm, UserModel user, String type) {
+        String providerId = StorageId.isLocalStorage(user) ? user.getFederationLink() : StorageId.resolveProviderId(user);
+        if (providerId != null) {
+            UserStorageProviderModel model = getStorageProviderModel(realm, providerId);
+            if (model == null || !model.isEnabled()) return UserStorageCredentialConfigured.USER_STORAGE_DISABLED;
+
+            CredentialInputValidator validator = getStorageProviderInstance(model, CredentialInputValidator.class);
+            if (validator != null && validator.supportsCredentialType(type) && validator.isConfiguredFor(realm, user, type)) {
+                return UserStorageCredentialConfigured.CONFIGURED;
+            }
+        }
+
         return UserStorageCredentialConfigured.NOT_CONFIGURED;
     }
 

@@ -19,7 +19,7 @@ package org.keycloak.models.map.credential;
 
 import org.keycloak.credential.CredentialInput;
 import org.keycloak.credential.CredentialModel;
-import org.keycloak.credential.SingleUserCredentialManagerStrategy;
+import org.keycloak.credential.SingleEntityCredentialManagerStrategy;
 import org.keycloak.models.ModelDuplicateException;
 import org.keycloak.models.map.user.MapUserCredentialEntity;
 import org.keycloak.models.map.user.MapUserEntity;
@@ -31,15 +31,15 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
- * Implementation of {@link SingleUserCredentialManagerStrategy} for map storages.
+ * Implementation of {@link SingleEntityCredentialManagerStrategy} for map storages.
  * Will delegate calls to the credential manager in the entity.
  *
  * @author Alexander Schwartz
  */
-public class MapSingleUserCredentialManagerStrategy implements SingleUserCredentialManagerStrategy {
+public class MapSingleEntityCredentialManagerStrategy implements SingleEntityCredentialManagerStrategy {
     private final MapUserEntity entity;
 
-    public MapSingleUserCredentialManagerStrategy(MapUserEntity entity) {
+    public MapSingleEntityCredentialManagerStrategy(MapUserEntity entity) {
         this.entity = entity;
     }
 

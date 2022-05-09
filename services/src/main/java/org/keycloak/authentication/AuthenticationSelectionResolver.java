@@ -80,9 +80,9 @@ class AuthenticationSelectionResolver {
             if (processor.getAuthenticationSession().getAuthenticatedUser() != null) {
                 authenticationSelectionList =
                         Stream.concat(
-                            processor.getAuthenticationSession().getAuthenticatedUser().userCredentialManager().getStoredCredentialsStream()
+                            processor.getAuthenticationSession().getAuthenticatedUser().credentialManager().getStoredCredentialsStream()
                                 .map(CredentialModel::getType),
-                            processor.getAuthenticationSession().getAuthenticatedUser().userCredentialManager()
+                            processor.getAuthenticationSession().getAuthenticatedUser().credentialManager()
                                 .getConfiguredUserStorageCredentialTypesStream())
                         .distinct()
                         .filter(typeAuthExecMap::containsKey)

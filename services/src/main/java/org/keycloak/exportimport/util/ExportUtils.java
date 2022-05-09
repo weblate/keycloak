@@ -498,7 +498,7 @@ public class ExportUtils {
 
         // Credentials - extra security, do not export credentials if service accounts
         if (internal) {
-            List<CredentialRepresentation> credReps = user.userCredentialManager().getStoredCredentialsStream()
+            List<CredentialRepresentation> credReps = user.credentialManager().getStoredCredentialsStream()
                     .map(ExportUtils::exportCredential).collect(Collectors.toList());
             userRep.setCredentials(credReps);
         }

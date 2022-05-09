@@ -41,13 +41,13 @@ import org.keycloak.models.ProtocolMapperModel;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RequiredActionProviderModel;
 import org.keycloak.models.RoleModel;
-import org.keycloak.models.SingleUserCredentialManager;
+import org.keycloak.models.SingleEntityCredentialManager;
 import org.keycloak.models.UserConsentModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserModel.SearchableFields;
 import org.keycloak.models.UserProvider;
 import org.keycloak.models.map.common.TimeAdapter;
-import org.keycloak.models.map.credential.MapSingleUserCredentialManager;
+import org.keycloak.models.map.credential.MapSingleEntityCredentialManager;
 import org.keycloak.models.map.storage.MapKeycloakTransactionWithAuth;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
@@ -110,8 +110,8 @@ public class MapUserProvider implements UserProvider.Streams {
             }
 
             @Override
-            public SingleUserCredentialManager userCredentialManager() {
-                return new MapSingleUserCredentialManager(session, realm, this, entity);
+            public SingleEntityCredentialManager credentialManager() {
+                return new MapSingleEntityCredentialManager(session, realm, this, entity);
             }
         };
     }

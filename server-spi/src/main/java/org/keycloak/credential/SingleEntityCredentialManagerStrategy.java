@@ -17,13 +17,15 @@
 
 package org.keycloak.credential;
 
+import org.keycloak.models.SingleEntityCredentialManager;
+
 import java.util.List;
 import java.util.stream.Stream;
 
 /**
- * Use this to implement extendable strategies for the {@link org.keycloak.models.SingleUserCredentialManager}.
+ * Use this to implement extendable strategies for the {@link SingleEntityCredentialManager}.
  */
-public interface SingleUserCredentialManagerStrategy {
+public interface SingleEntityCredentialManagerStrategy {
 
     /**
      * Validate the credentials passed as a list. The implementation should remove all credentials that validate

@@ -56,7 +56,7 @@ public class SecretQuestionCredentialProvider implements CredentialProvider<Secr
         if (challengeResponse == null) {
             return false;
         }
-        CredentialModel credentialModel = user.userCredentialManager().getStoredCredentialById(input.getCredentialId());
+        CredentialModel credentialModel = user.credentialManager().getStoredCredentialById(input.getCredentialId());
         SecretQuestionCredentialModel sqcm = getCredentialFromModel(credentialModel);
         return sqcm.getSecretQuestionSecretData().getAnswer().equals(challengeResponse);
     }
@@ -69,7 +69,7 @@ public class SecretQuestionCredentialProvider implements CredentialProvider<Secr
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
         if (!supportsCredentialType(credentialType)) return false;
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(credentialType).findAny().isPresent();
+        return user.credentialManager().getStoredCredentialsByTypeStream(credentialType).findAny().isPresent();
     }
 
     @Override
@@ -77,12 +77,12 @@ public class SecretQuestionCredentialProvider implements CredentialProvider<Secr
         if (credentialModel.getCreatedDate() == null) {
             credentialModel.setCreatedDate(Time.currentTimeMillis());
         }
-        return user.userCredentialManager().createStoredCredential(credentialModel);
+        return user.credentialManager().createStoredCredential(credentialModel);
     }
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
-        return user.userCredentialManager().removeStoredCredentialById(credentialId);
+        return user.credentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override

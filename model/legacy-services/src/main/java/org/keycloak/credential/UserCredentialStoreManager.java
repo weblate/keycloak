@@ -49,56 +49,56 @@ public class UserCredentialStoreManager implements UserCredentialManager.Streams
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public void updateCredential(RealmModel realm, UserModel user, CredentialModel cred) {
         warnAboutUsage();
-        user.userCredentialManager().updateStoredCredential(cred);
+        user.credentialManager().updateStoredCredential(cred);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public CredentialModel createCredential(RealmModel realm, UserModel user, CredentialModel cred) {
         warnAboutUsage();
-        return user.userCredentialManager().createStoredCredential(cred);
+        return user.credentialManager().createStoredCredential(cred);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean removeStoredCredential(RealmModel realm, UserModel user, String id) {
         warnAboutUsage();
-        return user.userCredentialManager().removeStoredCredentialById(id);
+        return user.credentialManager().removeStoredCredentialById(id);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public CredentialModel getStoredCredentialById(RealmModel realm, UserModel user, String id) {
         warnAboutUsage();
-        return user.userCredentialManager().getStoredCredentialById(id);
+        return user.credentialManager().getStoredCredentialById(id);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public Stream<CredentialModel> getStoredCredentialsStream(RealmModel realm, UserModel user) {
         warnAboutUsage();
-        return user.userCredentialManager().getStoredCredentialsStream();
+        return user.credentialManager().getStoredCredentialsStream();
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public Stream<CredentialModel> getStoredCredentialsByTypeStream(RealmModel realm, UserModel user, String type) {
         warnAboutUsage();
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(type);
+        return user.credentialManager().getStoredCredentialsByTypeStream(type);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public CredentialModel getStoredCredentialByNameAndType(RealmModel realm, UserModel user, String name, String type) {
         warnAboutUsage();
-        return user.userCredentialManager().getStoredCredentialByNameAndType(name, type);
+        return user.credentialManager().getStoredCredentialByNameAndType(name, type);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean moveCredentialTo(RealmModel realm, UserModel user, String id, String newPreviousCredentialId){
         warnAboutUsage();
-        return user.userCredentialManager().moveStoredCredentialTo(id, newPreviousCredentialId);
+        return user.credentialManager().moveStoredCredentialTo(id, newPreviousCredentialId);
     }
 
     @Override
@@ -112,21 +112,21 @@ public class UserCredentialStoreManager implements UserCredentialManager.Streams
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public CredentialModel createCredentialThroughProvider(RealmModel realm, UserModel user, CredentialModel model){
         warnAboutUsage();
-        return user.userCredentialManager().createCredentialThroughProvider(model);
+        return user.credentialManager().createCredentialThroughProvider(model);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public void updateCredentialLabel(RealmModel realm, UserModel user, String credentialId, String userLabel){
         warnAboutUsage();
-        user.userCredentialManager().updateCredentialLabel(credentialId, userLabel);
+        user.credentialManager().updateCredentialLabel(credentialId, userLabel);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean isValid(RealmModel realm, UserModel user, List<CredentialInput> inputs) {
         warnAboutUsage();
-        return user.userCredentialManager().isValid(inputs);
+        return user.credentialManager().isValid(inputs);
     }
 
     @Deprecated // Keep this up to and including Keycloak 19, then inline
@@ -142,35 +142,35 @@ public class UserCredentialStoreManager implements UserCredentialManager.Streams
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean updateCredential(RealmModel realm, UserModel user, CredentialInput input) {
         warnAboutUsage();
-        return user.userCredentialManager().updateCredential(input);
+        return user.credentialManager().updateCredential(input);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public void disableCredentialType(RealmModel realm, UserModel user, String credentialType) {
         warnAboutUsage();
-        user.userCredentialManager().disableCredentialType(credentialType);
+        user.credentialManager().disableCredentialType(credentialType);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public Stream<String> getDisableableCredentialTypesStream(RealmModel realm, UserModel user) {
         warnAboutUsage();
-        return user.userCredentialManager().getDisableableCredentialTypesStream();
+        return user.credentialManager().getDisableableCredentialTypesStream();
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String type) {
         warnAboutUsage();
-        return user.userCredentialManager().isConfiguredFor(type);
+        return user.credentialManager().isConfiguredFor(type);
     }
 
     @Override
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public boolean isConfiguredLocally(RealmModel realm, UserModel user, String type) {
         warnAboutUsage();
-        return user.userCredentialManager().isConfiguredLocally(type);
+        return user.credentialManager().isConfiguredLocally(type);
     }
 
     @Override
@@ -192,7 +192,7 @@ public class UserCredentialStoreManager implements UserCredentialManager.Streams
     @Deprecated // Keep this up to and including Keycloak 19, the use methods on user.userCredentialManager() instead
     public Stream<String> getConfiguredUserStorageCredentialTypesStream(RealmModel realm, UserModel user) {
         warnAboutUsage();
-        return user.userCredentialManager().getConfiguredUserStorageCredentialTypesStream();
+        return user.credentialManager().getConfiguredUserStorageCredentialTypesStream();
     }
 
     @Override

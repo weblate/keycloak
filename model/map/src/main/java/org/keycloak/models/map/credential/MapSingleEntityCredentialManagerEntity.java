@@ -26,7 +26,7 @@ import java.util.List;
  *
  * @author Alexander Schwartz
  */
-public interface MapSingleUserCredentialManagerEntity {
+public interface MapSingleEntityCredentialManagerEntity {
 
     /**
      * Validate the credentials of a user.

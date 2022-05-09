@@ -22,12 +22,12 @@ import org.keycloak.credential.CredentialInput;
 import java.util.List;
 
 /**
- * Standard implementation for a {@link MapSingleUserCredentialManagerEntity} where the store doesn't provide
+ * Standard implementation for a {@link MapSingleEntityCredentialManagerEntity} where the store doesn't provide
  * validation of credentials.
  *
  * @author Alexander Schwartz
  */
-public class DefaultMapSingleUserCredentialManagerEntity implements MapSingleUserCredentialManagerEntity {
+public class DefaultMapSingleEntityCredentialManagerEntity implements MapSingleEntityCredentialManagerEntity {
     @Override
     public void validateCredentials(List<CredentialInput> inputs) {
     }

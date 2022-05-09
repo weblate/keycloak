@@ -36,15 +36,15 @@ public class RecoveryAuthnCodesCredentialProvider
     public CredentialModel createCredential(RealmModel realm, UserModel user,
             RecoveryAuthnCodesCredentialModel credentialModel) {
 
-        user.userCredentialManager().getStoredCredentialsByTypeStream(getType()).findFirst()
+        user.credentialManager().getStoredCredentialsByTypeStream(getType()).findFirst()
                 .ifPresent(model -> deleteCredential(realm, user, model.getId()));
 
-        return user.userCredentialManager().createStoredCredential(credentialModel);
+        return user.credentialManager().createStoredCredential(credentialModel);
     }
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
-        return user.userCredentialManager().removeStoredCredentialById(credentialId);
+        return user.credentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override
@@ -92,13 +92,13 @@ public class RecoveryAuthnCodesCredentialProvider
 
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(credentialType).anyMatch(Objects::nonNull);
+        return user.credentialManager().getStoredCredentialsByTypeStream(credentialType).anyMatch(Objects::nonNull);
     }
 
     @Override
     public boolean isValid(RealmModel realm, UserModel user, CredentialInput credentialInput) {
         String rawInputRecoveryAuthnCode = credentialInput.getChallengeResponse();
-        Optional<CredentialModel> credential = user.userCredentialManager().getStoredCredentialsByTypeStream(getType()).findFirst();
+        Optional<CredentialModel> credential = user.credentialManager().getStoredCredentialsByTypeStream(getType()).findFirst();
         if (credential.isPresent()) {
             RecoveryAuthnCodesCredentialModel credentialModel = RecoveryAuthnCodesCredentialModel
                     .createFromCredentialModel(credential.get());
@@ -108,7 +108,7 @@ public class RecoveryAuthnCodesCredentialProvider
                     String nextRecoveryCode = nextRecoveryAuthnCode.get().getEncodedHashedValue();
                     if (RecoveryAuthnCodesUtils.verifyRecoveryCodeInput(rawInputRecoveryAuthnCode, nextRecoveryCode)) {
                         credentialModel.removeRecoveryAuthnCode();
-                        user.userCredentialManager().updateStoredCredential(credentialModel);
+                        user.credentialManager().updateStoredCredential(credentialModel);
                         return true;
                     }
 

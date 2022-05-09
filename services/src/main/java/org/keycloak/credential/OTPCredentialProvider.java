@@ -50,12 +50,12 @@ public class OTPCredentialProvider implements CredentialProvider<OTPCredentialMo
         if (credentialModel.getCreatedDate() == null) {
             credentialModel.setCreatedDate(Time.currentTimeMillis());
         }
-        return user.userCredentialManager().createStoredCredential(credentialModel);
+        return user.credentialManager().createStoredCredential(credentialModel);
     }
 
     @Override
     public boolean deleteCredential(RealmModel realm, UserModel user, String credentialId) {
-        return user.userCredentialManager().removeStoredCredentialById(credentialId);
+        return user.credentialManager().removeStoredCredentialById(credentialId);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class OTPCredentialProvider implements CredentialProvider<OTPCredentialMo
     @Override
     public boolean isConfiguredFor(RealmModel realm, UserModel user, String credentialType) {
         if (!supportsCredentialType(credentialType)) return false;
-        return user.userCredentialManager().getStoredCredentialsByTypeStream(credentialType).findAny().isPresent();
+        return user.credentialManager().getStoredCredentialsByTypeStream(credentialType).findAny().isPresent();
     }
 
     public boolean isConfiguredFor(RealmModel realm, UserModel user){
@@ -94,7 +94,7 @@ public class OTPCredentialProvider implements CredentialProvider<OTPCredentialMo
             return false;
         }
 
-        CredentialModel credential = user.userCredentialManager().getStoredCredentialById(credentialInput.getCredentialId());
+        CredentialModel credential = user.credentialManager().getStoredCredentialById(credentialInput.getCredentialId());
         OTPCredentialModel otpCredentialModel = OTPCredentialModel.createFromCredentialModel(credential);
         OTPSecretData secretData = otpCredentialModel.getOTPSecretData();
         OTPCredentialData credentialData = otpCredentialModel.getOTPCredentialData();
@@ -106,7 +106,7 @@ public class OTPCredentialProvider implements CredentialProvider<OTPCredentialMo
                 return false;
             }
             otpCredentialModel.updateCounter(counter);
-            user.userCredentialManager().updateStoredCredential(otpCredentialModel);
+            user.credentialManager().updateStoredCredential(otpCredentialModel);
             return true;
         } else if (OTPCredentialModel.TOTP.equals(credentialData.getSubType())) {
             TimeBasedOTP validator = new TimeBasedOTP(credentialData.getAlgorithm(), credentialData.getDigits(), credentialData.getPeriod(), policy.getLookAheadWindow());

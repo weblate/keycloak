@@ -245,7 +245,7 @@ public class LinkedAccountsResource {
     }
     
     private boolean isPasswordSet() {
-        return user.userCredentialManager().isConfiguredFor(PasswordCredentialModel.TYPE);
+        return user.credentialManager().isConfiguredFor(PasswordCredentialModel.TYPE);
     }
     
     private boolean isValidProvider(String providerId) {
