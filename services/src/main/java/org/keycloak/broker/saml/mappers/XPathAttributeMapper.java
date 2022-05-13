@@ -182,7 +182,9 @@ public class XPathAttributeMapper extends AbstractIdentityProviderMapper impleme
     private static Function<String, Object> applyXPath(String attributeXPath) {
         return xml -> {
             try {
-                LOGGER.trace("Trying to parse: " + xml);
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Trying to parse: " + xml);
+                }
 
                 Matcher namespaceMatcher = Pattern.compile("xmlns:(\\w+)=\"(.+?)\"").matcher(xml);
                 Map<String, String> namespaces = new HashMap<>();
