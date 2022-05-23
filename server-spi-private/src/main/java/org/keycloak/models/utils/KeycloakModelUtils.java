@@ -201,13 +201,9 @@ public final class KeycloakModelUtils {
 
         visited.add(composite.getId());
 
-        if (!composite.isComposite()) {
-            return false;
-        }
-
         Set<RoleModel> compositeRoles = composite.getCompositesStream().collect(Collectors.toSet());
         return compositeRoles.contains(role) ||
-                        compositeRoles.stream().anyMatch(x -> x.isComposite() && searchFor(role, x, visited));
+                        compositeRoles.stream().anyMatch(x -> searchFor(role, x, visited));
     }
 
     /**

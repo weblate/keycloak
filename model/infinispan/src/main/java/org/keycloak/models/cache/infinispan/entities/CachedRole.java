@@ -43,13 +43,11 @@ public class CachedRole extends AbstractRevisioned implements InRealm {
 
     public CachedRole(Long revision, RoleModel model, RealmModel realm) {
         super(revision, model.getId());
-        composite = model.isComposite();
         description = model.getDescription();
         name = model.getName();
         this.realm = realm.getId();
-        if (composite) {
-            composites.addAll(model.getCompositesStream().map(RoleModel::getId).collect(Collectors.toSet()));
-        }
+        composites.addAll(model.getCompositesStream().map(RoleModel::getId).collect(Collectors.toSet()));
+        composite = model.isComposite();
         attributes = new DefaultLazyLoader<>(roleModel -> new MultivaluedHashMap<>(roleModel.getAttributes()), MultivaluedHashMap::new);
     }
 

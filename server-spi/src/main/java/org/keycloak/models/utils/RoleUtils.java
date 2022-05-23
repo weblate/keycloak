@@ -175,14 +175,12 @@ public class RoleUtils {
                 RoleModel current = stack.pop();
                 sb.add(current);
 
-                if (current.isComposite()) {
-                    current.getCompositesStream()
-                            .filter(r -> !visited.contains(r))
-                            .forEach(r -> {
-                                visited.add(r);
-                                stack.add(r);
-                            });
-                }
+                current.getCompositesStream()
+                        .filter(r -> !visited.contains(r))
+                        .forEach(r -> {
+                            visited.add(r);
+                            stack.add(r);
+                        });
             }
         }
 
