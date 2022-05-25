@@ -27,20 +27,16 @@ import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -93,15 +89,17 @@ public class RoleEntity {
     // Hack to ensure that either name+client or name+realm are unique. Needed due to MS-SQL as it don't allow multiple NULL values in the column, which is part of constraint
     @Column(name="CLIENT_REALM_CONSTRAINT", length = 36)
     private String clientRealmConstraint;
-
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {})
-    @JoinTable(name = "COMPOSITE_ROLE", joinColumns = @JoinColumn(name = "COMPOSITE"), inverseJoinColumns = @JoinColumn(name = "CHILD_ROLE"))
-    private Set<RoleEntity> compositeRoles;
-
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true, mappedBy="role")
     @Fetch(FetchMode.SELECT)
     @BatchSize(size = 20)
     protected List<RoleAttributeEntity> attributes;
+
+    // transient fields to cache information related to this entity
+    @Transient
+    private Boolean composite;
+
+    @Transient
+    private List<RoleEntity> composites;
 
     public String getId() {
         return id;
@@ -147,17 +145,6 @@ public class RoleEntity {
         this.description = description;
     }
 
-    public Set<RoleEntity> getCompositeRoles() {
-        if (compositeRoles == null) {
-            compositeRoles = new HashSet<>();
-        }
-        return compositeRoles;
-    }
-
-    public void setCompositeRoles(Set<RoleEntity> compositeRoles) {
-        this.compositeRoles = compositeRoles;
-    }
-
     public boolean isClientRole() {
         return clientRole;
     }
@@ -200,4 +187,37 @@ public class RoleEntity {
     public int hashCode() {
         return id.hashCode();
     }
+
+    public Boolean isComposite() {
+        if (composites != null) {
+            return composites.size() > 0;
+        }
+        return composite;
+    }
+
+    public void setComposite(boolean composite) {
+        this.composite = composite;
+    }
+
+
+    public void addCompositeRole(RoleEntity child) {
+        composite = true;
+        // The composites list is sorted. Instead of trying to put the entry in the correct place, evict the cache for now.
+        composites = null;
+    }
+
+    public void removeCompositeRole(String child) {
+        if (composites != null) {
+            composites.removeIf(entity -> Objects.equals(entity.getId(), child));
+        }
+    }
+
+    public void setComposites(List<RoleEntity> composites) {
+        this.composites = composites;
+    }
+
+    public List<RoleEntity> getComposites() {
+        return composites;
+    }
+
 }

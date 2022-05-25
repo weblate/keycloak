@@ -1,5 +1,6 @@
 package org.keycloak.models.jpa.entities;
 
+import javax.persistence.Embeddable;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -7,29 +8,37 @@ import java.util.Objects;
  * The composite primary key representation for {@link CompositeRoleEntity}.
  * Required to perform lookup by primary key through JPA entity manager.
  */
+@Embeddable
 public class CompositeRoleEntityKey implements Serializable {
 
     private static final long serialVersionUID = -6078479162595894390L;
 
     private String compositeId;
+
     private String childRoleId;
-    
+
     public CompositeRoleEntityKey() {
-        super();
     }
 
     public CompositeRoleEntityKey(String compositeId, String childRoleId) {
-        super();
         this.compositeId = compositeId;
         this.childRoleId = childRoleId;
     }
-    
+
     public String getCompositeId() {
         return compositeId;
     }
 
+    public void setCompositeId(String compositeId) {
+        this.compositeId = compositeId;
+    }
+
     public String getChildRoleId() {
         return childRoleId;
+    }
+
+    public void setChildRoleId(String childRoleId) {
+        this.childRoleId = childRoleId;
     }
 
     @Override
