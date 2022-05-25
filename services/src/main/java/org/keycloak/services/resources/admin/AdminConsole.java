@@ -257,7 +257,9 @@ public class AdminConsole {
     private void addMasterRealmAccess(UserModel user, Map<String, Set<String>> realmAdminAccess) {
         session.realms().getRealmsStream().forEach(realm -> {
             ClientModel realmAdminApp = realm.getMasterAdminClient();
-            getRealmAdminAccess(realm, realmAdminApp, user, realmAdminAccess);
+            if (realmAdminApp != null) {
+                getRealmAdminAccess(realm, realmAdminApp, user, realmAdminAccess);
+            }
         });
     }
 

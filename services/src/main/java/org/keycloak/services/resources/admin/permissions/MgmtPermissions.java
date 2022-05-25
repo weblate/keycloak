@@ -166,7 +166,11 @@ class MgmtPermissions implements AdminPermissionEvaluator, AdminPermissionManage
         String clientId;
         RealmManager realmManager = new RealmManager(session);
         if (adminsRealm.equals(realmManager.getKeycloakAdminstrationRealm())) {
-            clientId = realm.getMasterAdminClient().getClientId();
+            ClientModel masterAdminClient = realm.getMasterAdminClient();
+            if (masterAdminClient == null) {
+                return false;
+            }
+            clientId = masterAdminClient.getClientId();
         } else if (adminsRealm.equals(realm)) {
             clientId = realm.getClientByClientId(realmManager.getRealmAdminClientId(realm)).getClientId();
         } else {
