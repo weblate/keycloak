@@ -51,7 +51,7 @@ import static org.keycloak.testsuite.model.session.UserSessionPersisterProviderT
 /**
  * @author <a href="mailto:mkanis@redhat.com">Martin Kanis</a>
  */
-@RequireProvider(UserSessionPersisterProvider.class)
+//@RequireProvider(UserSessionPersisterProvider.class)
 @RequireProvider(UserSessionProvider.class)
 @RequireProvider(UserProvider.class)
 @RequireProvider(RealmProvider.class)

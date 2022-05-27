@@ -56,6 +56,7 @@ import org.keycloak.common.Profile;
 import org.keycloak.common.util.StackUtil;
 import org.keycloak.common.util.StringPropertyReplacer;
 import org.keycloak.component.AmphibianProviderFactory;
+import org.keycloak.models.AuthenticatedClientSessionModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientScopeModel;
 import org.keycloak.models.GroupModel;
@@ -64,6 +65,7 @@ import org.keycloak.models.KeycloakSessionFactory;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserLoginFailureModel;
+import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.dblock.DBLockProvider;
 import org.keycloak.models.map.client.MapProtocolMapperEntity;
 import org.keycloak.models.map.client.MapProtocolMapperEntityImpl;
@@ -121,6 +123,10 @@ import org.keycloak.models.map.storage.jpa.realm.entity.JpaRealmEntity;
 import org.keycloak.models.map.storage.jpa.role.JpaRoleMapKeycloakTransaction;
 import org.keycloak.models.map.storage.jpa.role.entity.JpaRoleEntity;
 import org.keycloak.models.map.storage.jpa.updater.MapJpaUpdaterProvider;
+import org.keycloak.models.map.storage.jpa.userSession.client.JpaClientSessionMapKeycloakTransaction;
+import org.keycloak.models.map.storage.jpa.userSession.client.entity.JpaClientSessionEntity;
+import org.keycloak.models.map.storage.jpa.userSession.user.JpaUserSessionMapKeycloakTransaction;
+import org.keycloak.models.map.storage.jpa.userSession.user.entity.JpaUserSessionEntity;
 import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.provider.EnvironmentDependentProviderFactory;
 import org.keycloak.sessions.RootAuthenticationSessionModel;
@@ -177,6 +183,9 @@ public class JpaMapStorageProviderFactory implements
         .constructor(JpaRoleEntity.class,                       JpaRoleEntity::new)
         //user login-failure
         .constructor(JpaUserLoginFailureEntity.class,           JpaUserLoginFailureEntity::new)
+        //user/client session
+        .constructor(JpaClientSessionEntity.class,              JpaClientSessionEntity::new)
+        .constructor(JpaUserSessionEntity.class,                JpaUserSessionEntity::new)
         .build();
 
     private static final Map<Class<?>, Function<EntityManager, MapKeycloakTransaction>> MODEL_TO_TX = new HashMap<>();
@@ -195,6 +204,10 @@ public class JpaMapStorageProviderFactory implements
         MODEL_TO_TX.put(Scope.class,                            JpaScopeMapKeycloakTransaction::new);
         MODEL_TO_TX.put(PermissionTicket.class,                 JpaPermissionMapKeycloakTransaction::new);
         MODEL_TO_TX.put(Policy.class,                           JpaPolicyMapKeycloakTransaction::new);
+
+        //sessions
+        MODEL_TO_TX.put(AuthenticatedClientSessionModel.class,  JpaClientSessionMapKeycloakTransaction::new);
+        MODEL_TO_TX.put(UserSessionModel.class,                 JpaUserSessionMapKeycloakTransaction::new);
     }
 
     public JpaMapStorageProviderFactory() {
@@ -352,6 +365,8 @@ public class JpaMapStorageProviderFactory implements
         modelName = modelName.startsWith("authz-") ? "authz" : modelName;
 
         if (this.validatedModelNames.add(modelName)) {
+
+        Similarly for client/user session - there are two validations executed
         */
         if (this.validatedModels.add(modelType)) {
             Connection connection = getConnection();

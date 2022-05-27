@@ -35,6 +35,7 @@ import org.keycloak.models.map.storage.jpa.clientscope.entity.JpaClientScopeMeta
 import org.keycloak.models.map.storage.jpa.group.entity.JpaGroupMetadata;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaAuthenticationSessionMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaClientMigration;
+import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaClientSessionMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaClientScopeMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaComponentMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaGroupMigration;
@@ -47,10 +48,13 @@ import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaRoleMigr
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaRootAuthenticationSessionMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaScopeMigration;
 import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaUserLoginFailureMigration;
+import org.keycloak.models.map.storage.jpa.hibernate.jsonb.migration.JpaUserSessionMigration;
 import org.keycloak.models.map.storage.jpa.loginFailure.entity.JpaUserLoginFailureMetadata;
 import org.keycloak.models.map.storage.jpa.realm.entity.JpaComponentMetadata;
 import org.keycloak.models.map.storage.jpa.realm.entity.JpaRealmMetadata;
 import org.keycloak.models.map.storage.jpa.role.entity.JpaRoleMetadata;
+import org.keycloak.models.map.storage.jpa.userSession.client.entity.JpaClientSessionMetadata;
+import org.keycloak.models.map.storage.jpa.userSession.user.entity.JpaUserSessionMetadata;
 
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_AUTHZ_PERMISSION;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_AUTHZ_POLICY;
@@ -60,10 +64,12 @@ import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSI
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_AUTH_SESSION;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_CLIENT;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_CLIENT_SCOPE;
+import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_CLIENT_SESSION;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_GROUP;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_REALM;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_ROLE;
 import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_USER_LOGIN_FAILURE;
+import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_USER_SESSION;
 
 public class JpaEntityMigration {
 
@@ -85,6 +91,10 @@ public class JpaEntityMigration {
         MIGRATIONS.put(JpaResourceMetadata.class,                   (tree, entityVersion) -> migrateTreeTo(entityVersion, CURRENT_SCHEMA_VERSION_AUTHZ_RESOURCE,    tree, JpaResourceMigration.MIGRATORS));
         MIGRATIONS.put(JpaResourceServerMetadata.class,             (tree, entityVersion) -> migrateTreeTo(entityVersion, CURRENT_SCHEMA_VERSION_AUTHZ_RESOURCE_SERVER, tree, JpaResourceServerMigration.MIGRATORS));
         MIGRATIONS.put(JpaScopeMetadata.class,                      (tree, entityVersion) -> migrateTreeTo(entityVersion, CURRENT_SCHEMA_VERSION_AUTHZ_SCOPE,       tree, JpaScopeMigration.MIGRATORS));
+
+        //sessions
+        MIGRATIONS.put(JpaClientSessionMetadata.class,              (tree, entityVersion) -> migrateTreeTo(entityVersion, CURRENT_SCHEMA_VERSION_CLIENT_SESSION,      tree, JpaClientSessionMigration.MIGRATORS));
+        MIGRATIONS.put(JpaUserSessionMetadata.class,                (tree, entityVersion) -> migrateTreeTo(entityVersion, CURRENT_SCHEMA_VERSION_USER_SESSION,      tree, JpaUserSessionMigration.MIGRATORS));
     }
 
     private static ObjectNode migrateTreeTo(int entityVersion, Integer supportedVersion, ObjectNode node, List<Function<ObjectNode, ObjectNode>> migrators) {

@@ -194,6 +194,9 @@ public class MapJpaLiquibaseUpdaterProvider implements MapJpaUpdaterProvider {
         // for authorization services there is used single name for all modelTypes
         modelName = modelName.startsWith("authz-") ? "authz" : modelName;
 
+        // for client sessions there is used single name "user-sessions"
+        modelName = modelName.equals("client-sessions") ? "user-sessions" : modelName;
+
         Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
         // if database is cockroachdb, use the aggregate changelog (see GHI #11230).
         String changelog = database instanceof CockroachDatabase ? "META-INF/jpa-aggregate-changelog.xml" : "META-INF/jpa-" + modelName + "-changelog.xml";

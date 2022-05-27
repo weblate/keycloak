@@ -24,9 +24,11 @@ public interface Constants {
     public static final Integer CURRENT_SCHEMA_VERSION_AUTHZ_RESOURCE_SERVER = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_AUTHZ_SCOPE = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_CLIENT = 1;
+    public static final Integer CURRENT_SCHEMA_VERSION_CLIENT_SESSION = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_CLIENT_SCOPE = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_GROUP = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_REALM = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_ROLE = 1;
     public static final Integer CURRENT_SCHEMA_VERSION_USER_LOGIN_FAILURE = 1;
+    public static final Integer CURRENT_SCHEMA_VERSION_USER_SESSION = 1;
 }
