@@ -44,6 +44,7 @@ public class JpaClientSessionMapKeycloakTransaction extends JpaMapKeycloakTransa
                 root.get("version"),
                 root.get("entityVersion"),
                 root.get("userSessionId"),
+                root.get("action"),
                 root.get("offline"),
                 root.get("timestamp"),
                 root.get("expiration")

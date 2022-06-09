@@ -22,7 +22,6 @@ limitations under the License.
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
                     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <!-- format of id of changeSet: client-sessions-${org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_CLIENT_SESSION} -->
     <changeSet author="keycloak" id="client-sessions-1">
 
         <createTable tableName="kc_client_session">
@@ -33,12 +32,13 @@ limitations under the License.
                 <constraints nullable="false"/>
             </column>
             <column name="usersessionid" type="UUID">
-                <constraints foreignKeyName="client_session_fk_user_session_fkey" references="kc_user_session(id)" deleteCascade="true"/>
+                <constraints foreignKeyName="client_session_fk_user_session_fkey" references="kc_user_session(id)" deleteCascade="true" deferrable="true" initiallyDeferred="true" />
             </column>
             <column name="metadata" type="json"/>
         </createTable>
         <ext:addGeneratedColumn tableName="kc_client_session">
             <ext:column name="entityversion" type="INTEGER" jsonColumn="metadata" jsonProperty="entityVersion"/>
+            <ext:column name="action" type="VARCHAR(255)" jsonColumn="metadata" jsonProperty="fAction"/>
             <ext:column name="offline" type="BOOLEAN" jsonColumn="metadata" jsonProperty="fOffline"/>
             <ext:column name="timestamp" type="BIGINT" jsonColumn="metadata" jsonProperty="fTimestamp"/>
             <ext:column name="expiration" type="BIGINT" jsonColumn="metadata" jsonProperty="fExpiration"/>
@@ -61,9 +61,13 @@ limitations under the License.
             <column name="fk_root"/>
             <column name="name"/>
         </createIndex>
-        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
-        <addUniqueConstraint tableName="kc_client_session_note" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
+    </changeSet>
 
+    <changeSet author="keycloak" id="client-sessions-2" dbms="postgresql">
+        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
+        <!-- this will not work on cockroachdb as deferred indexes are not supported in version 22.1 yet, therefore, only run it on postgresql -->
+        <!-- see https://go.crdb.dev/issue-v/31632/v21.2 for the current status of the implementation -->
+        <addUniqueConstraint tableName="kc_client_session_note" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
     </changeSet>
 
 </databaseChangeLog>

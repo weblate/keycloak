@@ -22,7 +22,6 @@ limitations under the License.
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
                     http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
 
-    <!-- format of id of changeSet: user-sessions-${org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSION_USER_SESSION} -->
     <changeSet author="keycloak" id="user-sessions-1">
 
         <createTable tableName="kc_user_session">
@@ -66,8 +65,6 @@ limitations under the License.
             <column name="fk_root"/>
             <column name="name"/>
         </createIndex>
-        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
-        <addUniqueConstraint tableName="kc_user_session_note" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
 
         <createTable tableName="kc_user_session_client_session">
             <column name="id" type="UUID">
@@ -83,9 +80,14 @@ limitations under the License.
             <column name="fk_root"/>
             <column name="name"/>
         </createIndex>
-        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
-        <addUniqueConstraint tableName="kc_user_session_client_session" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
+    </changeSet>
 
+    <changeSet author="keycloak" id="user-sessions-2">
+        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
+        <!-- this will not work on cockroachdb as deferred indexes are not supported in version 22.1 yet, therefore, only run it on postgresql -->
+        <!-- see https://go.crdb.dev/issue-v/31632/v21.2 for the current status of the implementation -->
+        <addUniqueConstraint tableName="kc_user_session_note" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
+        <addUniqueConstraint tableName="kc_user_session_client_session" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
     </changeSet>
 
 </databaseChangeLog>

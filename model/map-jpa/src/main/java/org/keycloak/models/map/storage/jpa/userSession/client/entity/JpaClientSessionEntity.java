@@ -78,6 +78,10 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
 
     @Column(insertable = false, updatable = false)
     @Basic(fetch = FetchType.LAZY)
+    private String action;
+
+    @Column(insertable = false, updatable = false)
+    @Basic(fetch = FetchType.LAZY)
     private Long timestamp;
 
     @Column(insertable = false, updatable = false)
@@ -103,11 +107,12 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
      * It is used to select object without metadata(json) field.
      */
     public JpaClientSessionEntity(UUID id, int version, Integer entityVersion, UUID userSessionId,
-            Boolean offline, Long timestamp, Long expiration) {
+            String action, Boolean offline, Long timestamp, Long expiration) {
         this.id = id;
         this.version = version;
         this.entityVersion = entityVersion;
         this.userSessionId = userSessionId;
+        this.action = action;
         this.offline = offline;
         this.timestamp = timestamp;
         this.expiration = expiration;
@@ -131,7 +136,7 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
 
     @Override
     public Integer getCurrentSchemaVersion() {
-        return Constants.CURRENT_SCHEMA_VERSION_USER_SESSION;
+        return Constants.CURRENT_SCHEMA_VERSION_CLIENT_SESSION;
     }
 
     @Override
@@ -224,7 +229,8 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
 
     @Override
     public String getAction() {
-        return metadata.getAction();
+        if (isMetadataInitialized()) return metadata.getAction();
+        return action;
     }
 
     @Override

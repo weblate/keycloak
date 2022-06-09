@@ -51,6 +51,8 @@ public class JpaClientSessionDelegateProvider extends JpaDelegateProvider<JpaCli
             if (field instanceof MapAuthenticatedClientSessionEntityFields) {
                 switch ((MapAuthenticatedClientSessionEntityFields) field) {
                     case ID:
+                    case USER_SESSION_ID:
+                    case ACTION:
                     case OFFLINE:
                     case TIMESTAMP:
                     case EXPIRATION:
