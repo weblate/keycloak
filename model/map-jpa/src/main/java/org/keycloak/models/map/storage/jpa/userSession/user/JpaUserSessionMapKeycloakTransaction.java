@@ -33,7 +33,7 @@ import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSI
 public class JpaUserSessionMapKeycloakTransaction extends JpaMapKeycloakTransaction<JpaUserSessionEntity, MapUserSessionEntity, UserSessionModel> {
 
     public JpaUserSessionMapKeycloakTransaction(final EntityManager em) {
-        super(JpaUserSessionEntity.class, em);
+        super(JpaUserSessionEntity.class, UserSessionModel.class, em);
     }
 
     @Override

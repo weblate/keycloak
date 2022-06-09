@@ -34,7 +34,7 @@ import org.keycloak.models.map.userSession.MapAuthenticatedClientSessionEntityDe
 public class JpaClientSessionMapKeycloakTransaction extends JpaMapKeycloakTransaction<JpaClientSessionEntity, MapAuthenticatedClientSessionEntity, AuthenticatedClientSessionModel> {
 
     public JpaClientSessionMapKeycloakTransaction(final EntityManager em) {
-        super(JpaClientSessionEntity.class, em);
+        super(JpaClientSessionEntity.class, AuthenticatedClientSessionModel.class, em);
     }
 
     @Override
