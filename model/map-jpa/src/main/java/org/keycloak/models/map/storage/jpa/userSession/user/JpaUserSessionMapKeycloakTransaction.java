@@ -53,6 +53,7 @@ public class JpaUserSessionMapKeycloakTransaction extends JpaMapKeycloakTransact
 
     @Override
     protected MapUserSessionEntity mapToEntityDelegate(JpaUserSessionEntity original) {
+        original.setEntityManager(em);
         return original;
     }
 

@@ -27,10 +27,12 @@ import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.Version;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -52,6 +54,9 @@ import org.keycloak.models.map.userSession.MapUserSessionEntity.AbstractUserSess
 @Table(name = "kc_user_session")
 @TypeDefs({@TypeDef(name = "jsonb", typeClass = JsonbType.class)})
 public class JpaUserSessionEntity extends AbstractUserSessionEntity implements JpaRootVersionedEntity {
+
+    @Transient
+    private EntityManager em;
 
     @Id
     @Column
@@ -91,11 +96,11 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
     private Boolean offline;
 
     @Column(insertable = false, updatable = false)
-    @Basic(fetch = FetchType.LAZY)
+//    @Basic(fetch = FetchType.LAZY)
     private Long lastSessionRefresh;
 
     @Column(insertable = false, updatable = false)
-    @Basic(fetch = FetchType.LAZY)
+//    @Basic(fetch = FetchType.LAZY)
     private Long expiration;
 
     @OneToMany(mappedBy = "root", cascade = CascadeType.PERSIST, orphanRemoval = true)
@@ -117,6 +122,13 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
 
     public boolean isMetadataInitialized() {
         return metadata != null;
+    }
+
+    @Override
+    public JpaUserSessionEntity detachChildEntities() {
+//        notes.forEach(note -> note.setParent(null));
+//        authenticatedClientSessions.forEach(authClientSession -> authClientSession.setParent(null));
+        return this;
     }
 
     @Override
@@ -236,24 +248,32 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
 
     @Override
     public Long getLastSessionRefresh() {
-        if (isMetadataInitialized()) return metadata.getLastSessionRefresh();
         return lastSessionRefresh;
     }
 
     @Override
     public void setLastSessionRefresh(Long lastSessionRefresh) {
-        metadata.setLastSessionRefresh(lastSessionRefresh);
+        this.lastSessionRefresh = lastSessionRefresh;
+        if (em == null) return;
+        em.createQuery("update JpaUserSessionEntity set lastSessionRefresh = :lastSessionRefresh where id=:id")
+                .setParameter("lastSessionRefresh", lastSessionRefresh)
+                .setParameter("id", UUID.fromString(getId()))
+                .executeUpdate();
     }
 
     @Override
     public Long getExpiration() {
-        if (isMetadataInitialized()) return metadata.getExpiration();
         return expiration;
     }
 
     @Override
     public void setExpiration(Long expiration) {
-        metadata.setExpiration(expiration);
+        this.expiration = expiration;
+        if (em == null) return;
+        em.createQuery("update JpaUserSessionEntity set expiration = :expiration where id=:id")
+                .setParameter("expiration", expiration)
+                .setParameter("id", UUID.fromString(getId()))
+                .executeUpdate();
     }
 
     @Override
@@ -381,5 +401,18 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
         if (this == obj) return true;
         if (!(obj instanceof JpaUserSessionEntity)) return false;
         return Objects.equals(getId(), ((JpaUserSessionEntity) obj).getId());
+    }
+
+    public void setEntityManager(EntityManager em) {
+        this.em = em;
+        em.createQuery("update JpaUserSessionEntity set expiration = :expiration where id=:id")
+                .setParameter("expiration", expiration)
+                .setParameter("id", UUID.fromString(getId()))
+                .executeUpdate();
+        
+        em.createQuery("update JpaUserSessionEntity set lastSessionRefresh = :lastSessionRefresh where id=:id")
+                .setParameter("lastSessionRefresh", lastSessionRefresh)
+                .setParameter("id", UUID.fromString(getId()))
+                .executeUpdate();
     }
 }

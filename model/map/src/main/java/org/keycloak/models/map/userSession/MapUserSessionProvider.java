@@ -124,6 +124,7 @@ public class MapUserSessionProvider implements UserSessionProvider {
                 userSession.removeAuthenticatedClientSessions(Arrays.asList(origEntity.getClientId()));
                 // if a client session is found among transient ones we can skip call to store
                 if (transientClientSessions.remove(origEntity.getId()) == null) {
+                    LOG.tracef("remove expired client session(%s)%s", origEntity, getShortStackTrace());
                     clientSessionTx.delete(origEntity.getId());
                 }
                 return null;
@@ -131,6 +132,7 @@ public class MapUserSessionProvider implements UserSessionProvider {
                 return new MapAuthenticatedClientSessionAdapter(session, realm, client, userSession, origEntity) {
                     @Override
                     public void detachFromUserSession() {
+                        LOG.tracef("detachFromUserSession(clientSession: %s, userSession: %s)%s", origEntity.getId(), userSession.getId(), getShortStackTrace());
                         this.userSession = null;
 
                         // if a client session is found among transient ones we can skip call to store

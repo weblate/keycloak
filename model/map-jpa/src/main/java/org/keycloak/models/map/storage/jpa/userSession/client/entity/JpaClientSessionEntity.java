@@ -124,6 +124,12 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
     }
 
     @Override
+    public JpaClientSessionEntity detachChildEntities() {
+//        notes.forEach(note -> note.setParent(null));
+        return this;
+    }
+
+    @Override
     public Integer getEntityVersion() {
         if (isMetadataInitialized()) return metadata.getEntityVersion();
         return entityVersion;

@@ -31,6 +31,8 @@ limitations under the License.
             <column name="version" type="INTEGER" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="lastsessionrefresh" type="BIGINT"/>
+            <column name="expiration" type="BIGINT"/>
             <column name="metadata" type="json"/>
         </createTable>
         <ext:addGeneratedColumn tableName="kc_user_session">
@@ -40,8 +42,8 @@ limitations under the License.
             <ext:column name="userid" type="KC_KEY" jsonColumn="metadata" jsonProperty="fUserId"/>
             <ext:column name="brokersessionid" type="KC_KEY" jsonColumn="metadata" jsonProperty="fBrokerSessionId"/>
             <ext:column name="brokeruserid" type="KC_KEY" jsonColumn="metadata" jsonProperty="fBrokerUserId"/>
-            <ext:column name="lastsessionrefresh" type="BIGINT" jsonColumn="metadata" jsonProperty="fLastSessionRefresh"/>
-            <ext:column name="expiration" type="BIGINT" jsonColumn="metadata" jsonProperty="fExpiration"/>
+<!--            <ext:column name="lastsessionrefresh" type="BIGINT" jsonColumn="metadata" jsonProperty="fLastSessionRefresh"/>
+            <ext:column name="expiration" type="BIGINT" jsonColumn="metadata" jsonProperty="fExpiration"/>-->
         </ext:addGeneratedColumn>
         <createIndex tableName="kc_user_session" indexName="user_session_entityVersion">
             <column name="entityversion"/>

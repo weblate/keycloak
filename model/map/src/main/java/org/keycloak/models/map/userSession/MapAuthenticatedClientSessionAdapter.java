@@ -24,11 +24,15 @@ import org.keycloak.models.map.common.TimeAdapter;
 
 import java.util.Collections;
 import java.util.Map;
+import org.jboss.logging.Logger;
+import org.keycloak.common.util.StackUtil;
 
 /**
  * @author <a href="mailto:mkanis@redhat.com">Martin Kanis</a>
  */
 public abstract class MapAuthenticatedClientSessionAdapter extends AbstractAuthenticatedClientSessionModel {
+
+    private static Logger logger = Logger.getLogger(MapAuthenticatedClientSessionAdapter.class);
 
     public MapAuthenticatedClientSessionAdapter(KeycloakSession session, RealmModel realm, ClientModel client,
                                                 UserSessionModel userSession, MapAuthenticatedClientSessionEntity entity) {
@@ -84,6 +88,7 @@ public abstract class MapAuthenticatedClientSessionAdapter extends AbstractAuthe
 
     @Override
     public void setNote(String name, String value) {
+        logger.infof("%s#setNote(%s, %s)%s", getId(), name, value, StackUtil.getShortStackTrace());
         if (name != null) {
             if (value == null) {
                 entity.removeNote(name);
@@ -95,6 +100,7 @@ public abstract class MapAuthenticatedClientSessionAdapter extends AbstractAuthe
 
     @Override
     public void removeNote(String name) {
+        logger.infof("%s#removeNote(%s)%s", getId(), name, StackUtil.getShortStackTrace());
         if (name != null) {
             entity.removeNote(name);
         }

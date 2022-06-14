@@ -16,13 +16,16 @@
  */
 package org.keycloak.models.map.storage.jpa;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 import javax.persistence.EntityManager;
+import javax.persistence.LockModeType;
+import javax.persistence.NoResultException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -62,7 +65,7 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
     protected abstract JpaModelCriteriaBuilder createJpaModelCriteriaBuilder();
     protected abstract E mapToEntityDelegate(RE original);
 
-    private final HashMap<String, E> cacheWithinSession = new HashMap<>();
+    private final ConcurrentMap<String, E> cacheWithinSession = new ConcurrentHashMap<>();
 
     /**
      * Use the cache within the session to ensure that there is only one instance per entity within the current session.
@@ -156,6 +159,12 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
         return em.createQuery(countQuery).getSingleResult();
     }
 
+    public boolean delete(RE entity) {
+        em.remove(entity);
+        logger.tracef("tx %d: delete entity %s", hashCode(), entity.getId());
+        return true;
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public boolean delete(String key) {
@@ -163,9 +172,27 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
         UUID uuid = UUIDKey.INSTANCE.fromStringSafe(key);
         if (uuid == null) return false;
         cacheWithinSession.remove(key);
-        em.remove(em.getReference(entityType, uuid));
-        logger.tracef("tx %d: delete entity %s", hashCode(), key);
-        return true;
+//        RE ref = em.getReference(entityType, uuid);
+//        em.lock(ref, LockModeType.PESSIMISTIC_WRITE);
+//        em.remove(ref);
+
+        try {
+//            em.createQuery("select 1 from " + entityType.getSimpleName() + " entity where entity.id = ?1")
+            RE entity = em.createQuery("select entity from " + entityType.getSimpleName() + " entity where entity.id = ?1", entityType)
+                    .setParameter(1, uuid)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getSingleResult();
+            em.remove(entity.detachChildEntities());
+
+            logger.tracef("tx %d: delete entity %s", hashCode(), key);
+            return true;
+
+        } catch (NoResultException e) {
+            return false;
+        } catch (Exception e) {
+            throw e;
+        }
+       
     }
 
     @Override
@@ -182,7 +209,7 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
         MapModelCriteriaBuilder<String, E, M> mapMcb = queryParameters.getModelCriteriaBuilder().flashToModelCriteriaBuilder(createCriteriaBuilderMap());
         cacheWithinSession.entrySet().removeIf(entry -> {
             if (mapMcb.getKeyFilter().test(entry.getKey()) && mapMcb.getEntityFilter().test(entry.getValue())) {
-                em.remove(em.getReference(entityType, UUIDKey.INSTANCE.fromString(entry.getKey())));
+                em.remove(em.getReference(entityType, UUIDKey.INSTANCE.fromString(entry.getKey())).detachChildEntities());
                 removed[0]++;
                 return true;
             } else {

@@ -101,10 +101,10 @@ public abstract class MapUserSessionAdapter extends AbstractUserSessionModel {
         return lastSessionRefresh != null ? TimeAdapter.fromLongWithTimeInSecondsToIntegerWithTimeInSeconds(TimeAdapter.fromMilliSecondsToSeconds(lastSessionRefresh)) : 0;
     }
 
-    @Override
-    public void setLastSessionRefresh(int seconds) {
-        entity.setLastSessionRefresh(TimeAdapter.fromSecondsToMilliseconds(seconds));
-    }
+//    @Override
+//    public void setLastSessionRefresh(int seconds) {
+//        entity.setLastSessionRefresh(TimeAdapter.fromSecondsToMilliseconds(seconds));
+//    }
 
     @Override
     public boolean isOffline() {

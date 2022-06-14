@@ -56,4 +56,8 @@ public interface JpaRootEntity extends AbstractEntity, Serializable {
     }
 
     Integer getCurrentSchemaVersion();
+
+    default JpaRootEntity detachChildEntities() {
+        return this;
+    }
 }
