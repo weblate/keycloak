@@ -237,7 +237,7 @@ public class DefaultKeycloakSession implements KeycloakSession {
     @Override
     @Deprecated
     public UserProvider userStorageManager() {
-        throw new IllegalStateException("Calling userStorageManager() is not supported any more. Please adjust your code according to the Keycloak 19 migration guide.");
+        throw new IllegalStateException("Calling userStorageManager() is not supported any more. Please adjust your code according to the Keycloak 19 Upgrading Guide.");
     }
 
     @Override
