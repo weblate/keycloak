@@ -234,20 +234,10 @@ public class DefaultKeycloakSession implements KeycloakSession {
         return groups();
     }
 
-    private final ThreadLocal<Boolean> recursionPreventionUserStorageManager = new ThreadLocal<>();
-
     @Override
     @Deprecated
     public UserProvider userStorageManager() {
-        if(recursionPreventionUserStorageManager.get() != null) {
-            throw new IllegalStateException("userStorageManager() is being called recursively. Please adjust your code according to the Keycloak 19 migration guide.");
-        }
-        try {
-            recursionPreventionUserStorageManager.set(Boolean.TRUE);
-            return users();
-        } finally {
-            recursionPreventionUserStorageManager.remove();
-        }
+        throw new IllegalStateException("Calling userStorageManager() is not supported any more. Please adjust your code according to the Keycloak 19 migration guide.");
     }
 
     @Override
