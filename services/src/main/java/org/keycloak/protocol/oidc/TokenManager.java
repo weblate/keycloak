@@ -538,10 +538,10 @@ public class TokenManager {
         AuthenticatedClientSessionModel clientSession = userSession.getAuthenticatedClientSessionByClient(client.getId());
         if (clientSession == null) {
             clientSession = session.sessions().createClientSession(userSession.getRealm(), client, userSession);
+    
+            clientSession.setRedirectUri(authSession.getRedirectUri());
+            clientSession.setProtocol(authSession.getProtocol());
         }
-
-        clientSession.setRedirectUri(authSession.getRedirectUri());
-        clientSession.setProtocol(authSession.getProtocol());
 
         Set<String> clientScopeIds;
         if (Profile.isFeatureEnabled(Profile.Feature.DYNAMIC_SCOPES)) {

@@ -24,14 +24,19 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
+import javax.persistence.LockModeType;
 import javax.persistence.OneToMany;
+import javax.persistence.OptimisticLockException;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.persistence.Version;
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.CascadeType;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.hibernate.annotations.TypeDefs;
@@ -51,6 +56,9 @@ import org.keycloak.models.map.userSession.MapAuthenticatedClientSessionEntity.A
 @Table(name = "kc_client_session")
 @TypeDefs({@TypeDef(name = "jsonb", typeClass = JsonbType.class)})
 public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEntity implements JpaRootVersionedEntity {
+
+    @Transient
+    private EntityManager em;
 
     @Id
     @Column
@@ -88,7 +96,8 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
     @Basic(fetch = FetchType.LAZY)
     private Long expiration;
 
-    @OneToMany(mappedBy = "root", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    @OneToMany(mappedBy = "root", orphanRemoval = true)
+    @Cascade({CascadeType.PERSIST, CascadeType.LOCK})
     private final Set<JpaClientSessionNoteEntity> notes = new HashSet<>();
 
     /**
@@ -300,14 +309,28 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
 
     @Override
     public Boolean removeNote(String name) {
-        return notes.removeIf(obj -> Objects.equals(obj.getName(), name));
+        return notes.removeIf(obj -> {
+            if (Objects.equals(obj.getName(), name)) {
+                try {
+                    em.lock(this, LockModeType.PESSIMISTIC_WRITE);
+//                    em.createQuery("select entity from " + getClass().getSimpleName() + " entity where entity.id = ?1")
+//                        .setParameter(1, id)
+//                        .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+//                        .getResultList();
+                } catch (OptimisticLockException e) {
+                    return false;
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     @Override
     public void setNote(String name, String value) {
         if (name == null || value == null || value.trim().isEmpty()) return;
         JpaClientSessionNoteEntity note = new JpaClientSessionNoteEntity(this, name, value);
-        if (notes.contains(note)) notes.remove(note);
+        removeNote(name);
         notes.add(note);
     }
 
@@ -321,5 +344,10 @@ public class JpaClientSessionEntity extends AbstractAuthenticatedClientSessionEn
         if (this == obj) return true;
         if (!(obj instanceof JpaClientSessionEntity)) return false;
         return Objects.equals(getId(), ((JpaClientSessionEntity) obj).getId());
+    }
+
+    public JpaClientSessionEntity setEntityManager(EntityManager em) {
+        this.em = em;
+        return this;
     }
 }

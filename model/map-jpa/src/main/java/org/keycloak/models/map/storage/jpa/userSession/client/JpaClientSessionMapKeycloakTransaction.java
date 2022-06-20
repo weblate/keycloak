@@ -63,6 +63,7 @@ public class JpaClientSessionMapKeycloakTransaction extends JpaMapKeycloakTransa
 
     @Override
     protected MapAuthenticatedClientSessionEntity mapToEntityDelegate(JpaClientSessionEntity original) {
+        original.setEntityManager(em);
         return new MapAuthenticatedClientSessionEntityDelegate(new JpaClientSessionDelegateProvider(original, em));
     }
 }

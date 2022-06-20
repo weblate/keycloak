@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
+import javax.persistence.OptimisticLockException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -178,19 +179,21 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
 
         try {
 //            em.createQuery("select 1 from " + entityType.getSimpleName() + " entity where entity.id = ?1")
+//            RE entity = em.createQuery("select entity from " + entityType.getSimpleName() + " entity left join fetch entity.notes notes where notes.root = entity.id and entity.id = ?1", entityType)
             RE entity = em.createQuery("select entity from " + entityType.getSimpleName() + " entity where entity.id = ?1", entityType)
                     .setParameter(1, uuid)
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                     .getSingleResult();
+            entity.
             em.remove(entity.detachChildEntities());
 
             logger.tracef("tx %d: delete entity %s", hashCode(), key);
             return true;
 
-        } catch (NoResultException e) {
+        } catch (NoResultException | OptimisticLockException e) {
             return false;
         } catch (Exception e) {
-            throw e;
+            throw e;//TODO
         }
        
     }

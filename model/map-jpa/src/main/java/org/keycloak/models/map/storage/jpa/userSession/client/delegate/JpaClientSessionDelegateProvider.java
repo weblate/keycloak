@@ -64,17 +64,17 @@ public class JpaClientSessionDelegateProvider extends JpaDelegateProvider<JpaCli
                         Root<JpaClientSessionEntity> root = query.from(JpaClientSessionEntity.class);
                         root.fetch("notes", JoinType.LEFT);
                         query.select(root).where(cb.equal(root.get("id"), UUID.fromString(getDelegate().getId())));
-                        setDelegate(em.createQuery(query).getSingleResult());
+                        setDelegate(em.createQuery(query).getSingleResult().setEntityManager(em));
                         break;
 
                     default:
-                        setDelegate(em.find(JpaClientSessionEntity.class, UUID.fromString(getDelegate().getId())));
+                        setDelegate(em.find(JpaClientSessionEntity.class, UUID.fromString(getDelegate().getId())).setEntityManager(em));
                 }
             } else {
                 throw new IllegalStateException("Not a valid client session field: " + field);
             }
         } else {
-            setDelegate(em.find(JpaClientSessionEntity.class, UUID.fromString(getDelegate().getId())));
+            setDelegate(em.find(JpaClientSessionEntity.class, UUID.fromString(getDelegate().getId())).setEntityManager(em));
         }
         return getDelegate();
     }

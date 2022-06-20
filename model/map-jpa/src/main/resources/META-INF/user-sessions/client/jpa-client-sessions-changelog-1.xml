@@ -46,6 +46,9 @@ limitations under the License.
         <createIndex tableName="kc_client_session" indexName="client_session_entityVersion">
             <column name="entityversion"/>
         </createIndex>
+        <createIndex tableName="kc_client_session" indexName="client_session_user_session_id_fk">
+            <column name="usersessionid"/>
+        </createIndex>
 
         <createTable tableName="kc_client_session_note">
             <column name="id" type="UUID">
@@ -57,17 +60,10 @@ limitations under the License.
             <column name="name" type="VARCHAR(255)"/>
             <column name="value" type="TEXT"/>
         </createTable>
-        <createIndex tableName="kc_client_session_note" indexName="client_session_note_fk_root_name">
+        <createIndex tableName="kc_client_session_note" indexName="kc_client_session_note_fk_root_name_key">
             <column name="fk_root"/>
             <column name="name"/>
         </createIndex>
-    </changeSet>
-
-    <changeSet author="keycloak" id="client-sessions-2" dbms="postgresql">
-        <!-- this is deferrable and initiallyDeferred as hibernate will first insert new entries and then delete the old by default -->
-        <!-- this will not work on cockroachdb as deferred indexes are not supported in version 22.1 yet, therefore, only run it on postgresql -->
-        <!-- see https://go.crdb.dev/issue-v/31632/v21.2 for the current status of the implementation -->
-        <addUniqueConstraint tableName="kc_client_session_note" columnNames="fk_root, name" deferrable="true" initiallyDeferred="true" />
     </changeSet>
 
 </databaseChangeLog>

@@ -58,6 +58,9 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
     @Transient
     private EntityManager em;
 
+    @Transient
+    private boolean dirty;
+
     @Id
     @Column
     private UUID id;
@@ -253,8 +256,12 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
 
     @Override
     public void setLastSessionRefresh(Long lastSessionRefresh) {
+        if (Objects.equals(this.lastSessionRefresh, lastSessionRefresh)) return;
         this.lastSessionRefresh = lastSessionRefresh;
-        if (em == null) return;
+        if (em == null) {
+            this.dirty = true;
+            return;
+        }
         em.createQuery("update JpaUserSessionEntity set lastSessionRefresh = :lastSessionRefresh where id=:id")
                 .setParameter("lastSessionRefresh", lastSessionRefresh)
                 .setParameter("id", UUID.fromString(getId()))
@@ -268,8 +275,12 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
 
     @Override
     public void setExpiration(Long expiration) {
+        if (Objects.equals(this.expiration, expiration)) return;
         this.expiration = expiration;
-        if (em == null) return;
+        if (em == null) {
+            this.dirty = true;
+            return;
+        }
         em.createQuery("update JpaUserSessionEntity set expiration = :expiration where id=:id")
                 .setParameter("expiration", expiration)
                 .setParameter("id", UUID.fromString(getId()))
@@ -328,7 +339,14 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
     public void setNote(String name, String value) {
         if (name == null || value == null || value.trim().isEmpty()) return;
         JpaUserSessionNoteEntity note = new JpaUserSessionNoteEntity(this, name, value);
-        if (notes.contains(note)) notes.remove(note);
+        if (notes.contains(note)) {
+            for (JpaUserSessionNoteEntity note1 : notes) {
+                if (Objects.equals(note.getName(), note1.getName()) && Objects.equals(note.getValue(), note1.getValue())) {
+                    return;
+                }
+            }
+            notes.remove(note);
+        }
         notes.add(note);
     }
 
@@ -405,14 +423,17 @@ public class JpaUserSessionEntity extends AbstractUserSessionEntity implements J
 
     public void setEntityManager(EntityManager em) {
         this.em = em;
-        em.createQuery("update JpaUserSessionEntity set expiration = :expiration where id=:id")
-                .setParameter("expiration", expiration)
-                .setParameter("id", UUID.fromString(getId()))
-                .executeUpdate();
-        
-        em.createQuery("update JpaUserSessionEntity set lastSessionRefresh = :lastSessionRefresh where id=:id")
-                .setParameter("lastSessionRefresh", lastSessionRefresh)
-                .setParameter("id", UUID.fromString(getId()))
-                .executeUpdate();
+        if (dirty) {
+            em.createQuery("update JpaUserSessionEntity set expiration = :expiration where id=:id")
+                    .setParameter("expiration", expiration)
+                    .setParameter("id", UUID.fromString(getId()))
+                    .executeUpdate();
+
+            em.createQuery("update JpaUserSessionEntity set lastSessionRefresh = :lastSessionRefresh where id=:id")
+                    .setParameter("lastSessionRefresh", lastSessionRefresh)
+                    .setParameter("id", UUID.fromString(getId()))
+                    .executeUpdate();
+        }
+        this.dirty = false;
     }
 }
