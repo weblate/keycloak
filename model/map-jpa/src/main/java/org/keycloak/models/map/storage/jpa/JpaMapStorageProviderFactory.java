@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import javax.naming.InitialContext;
@@ -188,7 +189,7 @@ public class JpaMapStorageProviderFactory implements
         .constructor(JpaUserSessionEntity.class,                JpaUserSessionEntity::new)
         .build();
 
-    private static final Map<Class<?>, Function<EntityManager, MapKeycloakTransaction>> MODEL_TO_TX = new HashMap<>();
+    private static final Map<Class<?>, BiFunction<KeycloakSession, EntityManager, MapKeycloakTransaction>> MODEL_TO_TX = new HashMap<>();
     static {
         MODEL_TO_TX.put(RootAuthenticationSessionModel.class,   JpaRootAuthenticationSessionMapKeycloakTransaction::new);
         MODEL_TO_TX.put(ClientScopeModel.class,                 JpaClientScopeMapKeycloakTransaction::new);
@@ -216,8 +217,8 @@ public class JpaMapStorageProviderFactory implements
         this.sessionTxKey = SESSION_TX_PREFIX + index;
     }
 
-    public MapKeycloakTransaction createTransaction(Class<?> modelType, EntityManager em) {
-        return MODEL_TO_TX.get(modelType).apply(em);
+    public MapKeycloakTransaction createTransaction(KeycloakSession session, Class<?> modelType, EntityManager em) {
+        return MODEL_TO_TX.get(modelType).apply(session, em);
     }
 
     @Override

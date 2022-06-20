@@ -17,6 +17,7 @@
 
 package org.keycloak.protocol.oidc.grants.device;
 
+import static org.keycloak.models.LockObjectsForModification.lockObjectsForModification;
 import static org.keycloak.protocol.oidc.OIDCLoginProtocolService.tokenServiceBaseUrl;
 
 import org.keycloak.OAuth2Constants;
@@ -278,7 +279,7 @@ public class DeviceGrantType {
             client.getId());
 
         if (userSession == null) {
-            userSession = session.sessions().getUserSession(realm, userSessionId);
+            userSession = lockObjectsForModification(session, () -> session.sessions().getUserSession(realm, userSessionId));
             if (userSession == null) {
                 throw new CorsErrorResponseException(cors, OAuthErrorException.AUTHORIZATION_PENDING,
                     "The authorization request is verified but can not lookup the user session yet",

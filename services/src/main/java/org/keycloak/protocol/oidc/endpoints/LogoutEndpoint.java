@@ -85,6 +85,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.keycloak.models.LockObjectsForModification.lockObjectsForModification;
 import static org.keycloak.models.UserSessionModel.State.LOGGED_OUT;
 import static org.keycloak.models.UserSessionModel.State.LOGGING_OUT;
 import static org.keycloak.services.resources.LoginActionsService.SESSION_CODE;
@@ -354,7 +355,7 @@ public class LogoutEndpoint {
         String idTokenIssuedAtStr = logoutSession.getAuthNote(OIDCLoginProtocol.LOGOUT_VALIDATED_ID_TOKEN_ISSUED_AT);
         if (userSessionIdFromIdToken != null && idTokenIssuedAtStr != null) {
             try {
-                userSession = session.sessions().getUserSession(realm, userSessionIdFromIdToken);
+                userSession = lockObjectsForModification(session, () -> session.sessions().getUserSession(realm, userSessionIdFromIdToken));
 
                 if (userSession != null) {
                     Integer idTokenIssuedAt = Integer.parseInt(idTokenIssuedAtStr);
@@ -446,7 +447,8 @@ public class LogoutEndpoint {
                 UserSessionManager sessionManager = new UserSessionManager(session);
                 userSessionModel = sessionManager.findOfflineUserSession(realm, token.getSessionState());
             } else {
-                userSessionModel = session.sessions().getUserSession(realm, token.getSessionState());
+                String sessionState = token.getSessionState();
+                userSessionModel = lockObjectsForModification(session, () -> session.sessions().getUserSession(realm, sessionState));
             }
 
             if (userSessionModel != null) {

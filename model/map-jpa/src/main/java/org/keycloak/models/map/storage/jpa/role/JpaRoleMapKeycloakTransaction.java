@@ -20,6 +20,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
+
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.map.role.MapRoleEntity;
 import org.keycloak.models.map.role.MapRoleEntityDelegate;
@@ -33,8 +35,8 @@ import org.keycloak.models.map.storage.jpa.role.entity.JpaRoleEntity;
 public class JpaRoleMapKeycloakTransaction extends JpaMapKeycloakTransaction<JpaRoleEntity, MapRoleEntity, RoleModel> {
 
     @SuppressWarnings("unchecked")
-    public JpaRoleMapKeycloakTransaction(EntityManager em) {
-        super(JpaRoleEntity.class, RoleModel.class, em);
+    public JpaRoleMapKeycloakTransaction(KeycloakSession session, EntityManager em) {
+        super(session, JpaRoleEntity.class, RoleModel.class, em);
     }
 
     @Override

@@ -120,6 +120,8 @@ import java.util.Collections;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.xml.crypto.dsig.XMLSignature;
 
+import static org.keycloak.models.LockObjectsForModification.lockObjectsForModification;
+
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
@@ -669,7 +671,7 @@ public class SAMLEndpoint {
                 event.error(Errors.USER_SESSION_NOT_FOUND);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
             }
-            UserSessionModel userSession = session.sessions().getUserSession(realm, relayState);
+            UserSessionModel userSession = lockObjectsForModification(session, () -> session.sessions().getUserSession(realm, relayState));
             if (userSession == null) {
                 logger.error("no valid user session");
                 event.event(EventType.LOGOUT);

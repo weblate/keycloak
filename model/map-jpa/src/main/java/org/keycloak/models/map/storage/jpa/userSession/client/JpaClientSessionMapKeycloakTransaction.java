@@ -22,6 +22,7 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
 import org.keycloak.models.AuthenticatedClientSessionModel;
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.map.storage.jpa.Constants;
 import org.keycloak.models.map.storage.jpa.JpaMapKeycloakTransaction;
 import org.keycloak.models.map.storage.jpa.JpaModelCriteriaBuilder;
@@ -33,8 +34,8 @@ import org.keycloak.models.map.userSession.MapAuthenticatedClientSessionEntityDe
 
 public class JpaClientSessionMapKeycloakTransaction extends JpaMapKeycloakTransaction<JpaClientSessionEntity, MapAuthenticatedClientSessionEntity, AuthenticatedClientSessionModel> {
 
-    public JpaClientSessionMapKeycloakTransaction(final EntityManager em) {
-        super(JpaClientSessionEntity.class, AuthenticatedClientSessionModel.class, em);
+    public JpaClientSessionMapKeycloakTransaction(KeycloakSession session, final EntityManager em) {
+        super(session, JpaClientSessionEntity.class, AuthenticatedClientSessionModel.class, em);
     }
 
     @Override
@@ -65,5 +66,10 @@ public class JpaClientSessionMapKeycloakTransaction extends JpaMapKeycloakTransa
     protected MapAuthenticatedClientSessionEntity mapToEntityDelegate(JpaClientSessionEntity original) {
         original.setEntityManager(em);
         return new MapAuthenticatedClientSessionEntityDelegate(new JpaClientSessionDelegateProvider(original, em));
+    }
+
+    @Override
+    protected boolean lockingSupportedForEntity() {
+        return true;
     }
 }

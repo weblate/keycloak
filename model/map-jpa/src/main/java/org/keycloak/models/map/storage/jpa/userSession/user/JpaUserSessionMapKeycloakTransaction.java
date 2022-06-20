@@ -21,6 +21,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.map.storage.jpa.JpaMapKeycloakTransaction;
 import org.keycloak.models.map.storage.jpa.JpaModelCriteriaBuilder;
@@ -32,8 +33,8 @@ import static org.keycloak.models.map.storage.jpa.Constants.CURRENT_SCHEMA_VERSI
 
 public class JpaUserSessionMapKeycloakTransaction extends JpaMapKeycloakTransaction<JpaUserSessionEntity, MapUserSessionEntity, UserSessionModel> {
 
-    public JpaUserSessionMapKeycloakTransaction(final EntityManager em) {
-        super(JpaUserSessionEntity.class, UserSessionModel.class, em);
+    public JpaUserSessionMapKeycloakTransaction(KeycloakSession session, final EntityManager em) {
+        super(session, JpaUserSessionEntity.class, UserSessionModel.class, em);
     }
 
     @Override
@@ -55,6 +56,11 @@ public class JpaUserSessionMapKeycloakTransaction extends JpaMapKeycloakTransact
     protected MapUserSessionEntity mapToEntityDelegate(JpaUserSessionEntity original) {
         original.setEntityManager(em);
         return original;
+    }
+
+    @Override
+    protected boolean lockingSupportedForEntity() {
+        return true;
     }
 
 }

@@ -27,6 +27,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.LockModeType;
 import javax.persistence.NoResultException;
 import javax.persistence.OptimisticLockException;
+import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaDelete;
 import javax.persistence.criteria.CriteriaQuery;
@@ -36,6 +37,9 @@ import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Selection;
 import org.jboss.logging.Logger;
 import static org.keycloak.models.map.storage.jpa.PaginationUtils.paginateQuery;
+
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.LockObjectsForModification;
 import org.keycloak.models.map.common.AbstractEntity;
 import org.keycloak.models.map.common.StringKeyConverter;
 import org.keycloak.models.map.common.StringKeyConverter.UUIDKey;
@@ -53,9 +57,11 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
     private final Class<RE> entityType;
     private final Class<M> modelType;
     protected EntityManager em;
+    private KeycloakSession session;
 
     @SuppressWarnings("unchecked")
-    public JpaMapKeycloakTransaction(Class<RE> entityType, Class<M> modelType, EntityManager em) {
+    public JpaMapKeycloakTransaction(KeycloakSession session, Class<RE> entityType, Class<M> modelType, EntityManager em) {
+        this.session = session;
         this.em = em;
         this.entityType = entityType;
         this.modelType = modelType;
@@ -65,6 +71,15 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
     protected abstract void setEntityVersion(JpaRootEntity entity);
     protected abstract JpaModelCriteriaBuilder createJpaModelCriteriaBuilder();
     protected abstract E mapToEntityDelegate(RE original);
+
+    /**
+     * Indicates of pessimistic locking should be allowed for this entity. This should be enabled only for those entities
+     * where there is no expected contention from different callers. For UserSessions and ClientSessions this should be possible.
+     * The locking on Clients would be problematic as such a lock affects multiple callers.
+     */
+    protected boolean lockingSupportedForEntity() {
+        return false;
+    }
 
     private final ConcurrentMap<String, E> cacheWithinSession = new ConcurrentHashMap<>();
 
@@ -102,7 +117,11 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
         if (key == null) return null;
         UUID uuid = StringKeyConverter.UUIDKey.INSTANCE.fromStringSafe(key);
         if (uuid == null) return null;
-        return mapToEntityDelegateUnique(em.find(entityType, uuid));
+        return mapToEntityDelegateUnique(
+                lockingSupportedForEntity() && LockObjectsForModification.isEnabled(session) ?
+                        em.find(entityType, uuid, LockModeType.PESSIMISTIC_WRITE) :
+                        em.find(entityType, uuid)
+        );
     }
 
     @Override
@@ -138,7 +157,11 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
         BiFunction<CriteriaBuilder, Root<RE>, Predicate> predicateFunc = mcb.getPredicateFunc();
         if (predicateFunc != null) query.where(predicateFunc.apply(cb, root));
 
-        return closing(paginateQuery(em.createQuery(query), queryParameters.getOffset(), queryParameters.getLimit()).getResultStream())
+        TypedQuery<RE> emQuery = em.createQuery(query);
+        if (lockingSupportedForEntity() && LockObjectsForModification.isEnabled(session)) {
+            emQuery = emQuery.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+        }
+        return closing(paginateQuery(emQuery, queryParameters.getOffset(), queryParameters.getLimit()).getResultStream())
                 .map(this::mapToEntityDelegateUnique);
     }
 
@@ -184,7 +207,7 @@ public abstract class JpaMapKeycloakTransaction<RE extends JpaRootEntity, E exte
                     .setParameter(1, uuid)
                     .setLockMode(LockModeType.PESSIMISTIC_WRITE)
                     .getSingleResult();
-            entity.
+            // entity.
             em.remove(entity.detachChildEntities());
 
             logger.tracef("tx %d: delete entity %s", hashCode(), key);
