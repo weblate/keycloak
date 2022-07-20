@@ -138,10 +138,17 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+
+      - name: In a PR fetch PRs commits in addition to the one above
+        if: github.event_name == 'pull_request'
+        run: git fetch --deepen=${{ github.event.pull_request.commits }}
+
+      - name: Show all files that have been changed in this pull request
+        if: github.event_name == 'pull_request'
+        run: git diff --name-only HEAD^
 
       - name: Check whether HEAD^ contains HotRod storage relevant changes
+        if: github.event_name == 'pull_request'
         run: echo "GIT_HOTROD_RELEVANT_DIFF=$( git diff --name-only HEAD^ | egrep -ic -e '^model/map-hot-rod|^model/map/|^model/build-processor' )" >> $GITHUB_ENV
 
       - name: Cache Maven packages
@@ -234,10 +241,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+
+      - name: In a PR fetch PRs commits in addition to the one above
+        if: github.event_name == 'pull_request'
+        run: git fetch --deepen=${{ github.event.pull_request.commits }}
 
       - name: Check whether HEAD^ contains JPA map storage relevant changes
+        if: github.event_name == 'pull_request'
         run: echo "GIT_MAP_JPA_RELEVANT_DIFF=$( git diff --name-only HEAD^ | egrep -ic -e '^model/map-jpa/|^model/map/|^model/build-processor' )" >> $GITHUB_ENV
 
       - name: Cache Maven packages
@@ -297,10 +307,13 @@ jobs:
       MAVEN_OPTS: -Xmx1024m
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
+
+      - name: In a PR fetch PRs commits in addition to the one above
+        if: github.event_name == 'pull_request'
+        run: git fetch --deepen=${{ github.event.pull_request.commits }}
 
       - name: Check whether this phase should run
+        if: github.event_name == 'pull_request'
         run: echo "GIT_DIFF=$[ $( git diff --name-only HEAD^ | egrep -ic 'crossdc|infinispan' ) + $( git diff HEAD^ pom.xml | egrep -ic '\+\s+<wildfly.version>' ) ]" >> $GITHUB_ENV
 
       - uses: actions/setup-java@v3
@@ -517,11 +530,14 @@ jobs:
 #    needs: build
 #    runs-on: ubuntu-latest
 #    steps:
-#      - uses: actions/checkout@v2
-#        with:
-#          fetch-depth: 2
+#      - uses: actions/checkout@v3
 #
+#      - name: In a PR fetch PRs commits in addition to the one above
+#        if: github.event_name == 'pull_request'
+#        run: git fetch --deepen=${{ github.event.pull_request.commits }}
+##
 #      - name: Check whether this phase should run
+#        if: github.event_name == 'pull_request'
 #        run: echo "GIT_DIFF=$[ $( git diff --name-only HEAD^ | egrep -ic 'webauthn|passwordless' ) ]" >> $GITHUB_ENV
 #
 #      - uses: actions/setup-java@v1
