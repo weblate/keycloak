@@ -16,8 +16,6 @@
  */
 package org.keycloak.testsuite.model;
 
-import org.infinispan.commons.CacheConfigurationException;
-import org.infinispan.manager.EmbeddedCacheManagerStartupException;
 import org.junit.Assert;
 import org.keycloak.Config.Scope;
 import org.keycloak.authorization.AuthorizationSpi;
@@ -362,53 +360,27 @@ public abstract class KeycloakModelTest {
             }
         });
         try {
-        /*
-            workaround for Infinispan 12.1.7.Final to prevent an internal Infinispan NullPointerException
-            when multiple nodes tried to join at the same time by starting them sequentially,
-            although that does not catch 100% of all occurrences.
-            Already fixed in Infinispan 13.
-            https://issues.redhat.com/browse/ISPN-13231
-        */
-            Semaphore sem = new Semaphore(1);
             CountDownLatch start = new CountDownLatch(numThreads);
             CountDownLatch stop = new CountDownLatch(numThreads);
-            Callable<?> independentTask = () -> {
-                AtomicBoolean locked = new AtomicBoolean(false);
+            Callable<?> independentTask = () -> inIndependentFactory(() -> {
+
+                // use the latch to ensure that all caches are online while the transaction below runs to avoid a RemoteException
+                start.countDown();
+                start.await();
+
                 try {
-                    sem.acquire();
-                    locked.set(true);
-                    Object val = inIndependentFactory(() -> {
-                        sem.release();
-                        locked.set(false);
+                    task.run();
 
-                        // use the latch to ensure that all caches are online while the transaction below runs to avoid a RemoteException
-                        start.countDown();
-                        start.await();
-
-                        try {
-                            task.run();
-
-                            // use the latch to ensure that all caches are online while the transaction above runs to avoid a RemoteException
-                            // otherwise might fail with "Cannot wire or start components while the registry is not running" during shutdown
-                            // https://issues.redhat.com/browse/ISPN-9761
-                        } finally {
-                            stop.countDown();
-                        }
-                        stop.await();
-
-                        sem.acquire();
-                        locked.set(true);
-                        return null;
-                    });
-                    sem.release();
-                    locked.set(false);
-                    return val;
+                    // use the latch to ensure that all caches are online while the transaction above runs to avoid a RemoteException
+                    // otherwise might fail with "Cannot wire or start components while the registry is not running" during shutdown
+                    // https://issues.redhat.com/browse/ISPN-9761
                 } finally {
-                    if (locked.get()) {
-                        sem.release();
-                    }
+                    stop.countDown();
                 }
-            };
+                stop.await();
+
+                return null;
+            });
 
             // submit tasks, and wait for the results without cancelling execution so that we'll be able to analyze the thread dump
             List<? extends Future<?>> tasks = IntStream.range(0, numThreads)
@@ -486,46 +458,10 @@ public abstract class KeycloakModelTest {
             throw new IllegalStateException("USE_DEFAULT_FACTORY must be false to use an independent factory");
         }
         KeycloakSessionFactory original = getFactory();
-        int retries = 10;
-        KeycloakSessionFactory factory = null;
-        do {
-            try {
-                factory = createKeycloakSessionFactory();
-            } catch (CacheConfigurationException | EmbeddedCacheManagerStartupException ex) {
-                if (retries > 0) {
-                    /*
-                        workaround for Infinispan 12.1.7.Final for a NullPointerException
-                        when multiple nodes tried to join at the same time. Retry until this succeeds.
-                        Already fixed in Infinispan 13.
-                        https://issues.redhat.com/browse/ISPN-13231
-                    */
-                    LOG.warn("initialization failed, retrying", ex);
-                    --retries;
-                } else {
-                    throw ex;
-                }
-            }
-        } while (factory == null);
+        KeycloakSessionFactory factory = createKeycloakSessionFactory();
         try {
             setFactory(factory);
-            do {
-                try {
-                    return task.call();
-                } catch (CacheConfigurationException | EmbeddedCacheManagerStartupException ex) {
-                    if (retries > 0) {
-                    /*
-                        workaround for Infinispan 12.1.7.Final for a NullPointerException
-                        when multiple nodes tried to join at the same time. Retry until this succeeds.
-                        Already fixed in Infinispan 13.
-                        https://issues.redhat.com/browse/ISPN-13231
-                    */
-                        LOG.warn("initialization failed, retrying", ex);
-                        -- retries;
-                    } else {
-                        throw ex;
-                    }
-                }
-            } while (true);
+            return task.call();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
         } finally {

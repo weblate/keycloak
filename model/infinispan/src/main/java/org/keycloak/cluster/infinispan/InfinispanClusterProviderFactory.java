@@ -221,15 +221,7 @@ public class InfinispanClusterProviderFactory implements ClusterProviderFactory,
                         }
 
                         logger.debugf("Nodes %s removed from cluster. Removing tasks locked by this nodes", removedNodesAddresses.toString());
-                    /*
-                        workaround for Infinispan 12.1.7.Final to prevent a deadlock while
-                        DefaultInfinispanConnectionProviderFactory is shutting down PersistenceManagerImpl
-                        that acquires a writeLock and this removal that acquires a readLock.
-                        https://issues.redhat.com/browse/ISPN-13664
-                    */
-                        synchronized (DefaultInfinispanConnectionProviderFactory.class) {
-                            workCache.entrySet().removeIf(new LockEntryPredicate(removedNodesAddresses));
-                        }
+                        workCache.entrySet().removeIf(new LockEntryPredicate(removedNodesAddresses));
                     }
                 } catch (Throwable t) {
                     logger.error("caught exception in ViewChangeListener", t);

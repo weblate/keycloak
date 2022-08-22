@@ -87,21 +87,13 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
 
     @Override
     public void close() {
-        /*
-            workaround for Infinispan 12.1.7.Final to prevent a deadlock while
-            DefaultInfinispanConnectionProviderFactory is shutting down PersistenceManagerImpl
-            that acquires a writeLock and this removal that acquires a readLock.
-            https://issues.redhat.com/browse/ISPN-13664
-        */
-        synchronized (DefaultInfinispanConnectionProviderFactory.class) {
-            if (cacheManager != null && !containerManaged) {
-                cacheManager.stop();
-            }
-            if (remoteCacheProvider != null) {
-                remoteCacheProvider.stop();
-            }
-            cacheManager = null;
+        if (cacheManager != null && !containerManaged) {
+            cacheManager.stop();
         }
+        if (remoteCacheProvider != null) {
+            remoteCacheProvider.stop();
+        }
+        cacheManager = null;
     }
 
     @Override
