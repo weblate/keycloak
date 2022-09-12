@@ -61,7 +61,7 @@ public class ComponentsTest extends AbstractAdminTest {
     private volatile CountDownLatch remainingDeleteSubmissions;
 
     private static final int NUMBER_OF_THREADS = 4;
-    private static final int NUMBER_OF_TASKS = NUMBER_OF_THREADS * 5;
+    private static final int NUMBER_OF_TASKS = NUMBER_OF_THREADS * 20;
     private static final int NUMBER_OF_CHILDREN = 3;
 
     private void testConcurrency(BiConsumer<ExecutorService, Integer> taskCreator) throws InterruptedException {

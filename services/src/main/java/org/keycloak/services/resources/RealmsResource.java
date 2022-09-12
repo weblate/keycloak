@@ -39,6 +39,7 @@ import org.keycloak.services.resource.RealmResourceProvider;
 import org.keycloak.services.resources.account.AccountLoader;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.services.util.ResolveRelative;
+import org.keycloak.utils.LockObjectsForModification;
 import org.keycloak.utils.ProfileHelper;
 import org.keycloak.wellknown.WellKnownProvider;
 import org.keycloak.wellknown.WellKnownProviderFactory;
@@ -292,7 +293,10 @@ public class RealmsResource {
      */
     @Path("{realm}/{extension}")
     public Object resolveRealmExtension(@PathParam("realm") String realmName, @PathParam("extension") String extension) {
-        init(realmName);
+        LockObjectsForModification.lockRealmsForModification(session, () -> {
+            init(realmName);
+            return null;
+        });
         RealmResourceProvider provider = session.getProvider(RealmResourceProvider.class, extension);
         if (provider != null) {
             Object resource = provider.getResource();

@@ -130,9 +130,11 @@ public class ComponentResource {
     public Response create(ComponentRepresentation rep) {
         auth.realm().requireManageRealm();
         AtomicReference<Response> ref = new AtomicReference<>();
-        KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), kcSession -> {
-            RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
-            try {
+        KeycloakSession kcSession = session;
+        // KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), kcSession -> {
+            // RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
+        RealmModel realmModel = realm;
+        try {
                 ComponentModel model = RepresentationToModel.toModel(kcSession, rep);
                 if (model.getParentId() == null) model.setParentId(realmModel.getId());
 
@@ -145,7 +147,7 @@ public class ComponentResource {
             } catch (IllegalArgumentException e) {
                 throw new BadRequestException(e);
             }
-        });
+        // });
         return ref.get();
     }
 
@@ -192,8 +194,10 @@ public class ComponentResource {
     @Path("{id}")
     public void removeComponent(@PathParam("id") String id) {
         auth.realm().requireManageRealm();
-        KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), kcSession -> {
-            RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
+        // KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), kcSession -> {
+        KeycloakSession kcSession = session;
+            // RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
+            RealmModel realmModel = realm;
 
             ComponentModel model = realmModel.getComponent(id);
             if (model == null) {
@@ -201,7 +205,7 @@ public class ComponentResource {
             }
             adminEvent.operation(OperationType.DELETE).resourcePath(kcSession.getContext().getUri()).success();
             realmModel.removeComponent(model);
-        });
+        // });
     }
 
     private Response localizedErrorResponse(ComponentValidationException cve) {

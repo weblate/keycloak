@@ -39,6 +39,7 @@ import org.keycloak.services.resources.admin.info.ServerInfoAdminResource;
 import org.keycloak.services.resources.admin.permissions.AdminPermissions;
 import org.keycloak.theme.Theme;
 import org.keycloak.urls.UrlType;
+import org.keycloak.utils.LockObjectsForModification;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.HttpMethod;
@@ -202,7 +203,7 @@ public class AdminRoot {
             return new AdminCorsPreflightService(request);
         }
 
-        AdminAuth auth = authenticateRealmAdminRequest(headers);
+        AdminAuth auth = LockObjectsForModification.lockRealmsForModification(session, () -> authenticateRealmAdminRequest(headers));
         if (auth != null) {
             logger.debug("authenticated admin access for: " + auth.getUser().getUsername());
         }
