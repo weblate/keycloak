@@ -48,6 +48,7 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.models.utils.AuthenticationFlowResolver;
+import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.oidc.OIDCAdvancedConfigWrapper;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.TokenExchangeContext;
@@ -195,7 +196,13 @@ public class TokenEndpoint {
 
         switch (action) {
             case AUTHORIZATION_CODE:
-                return codeToToken();
+                return KeycloakModelUtils.runJobInRetriableTransaction(this.session.getKeycloakSessionFactory(), kcSession -> {
+                    RealmModel realmModel = kcSession.realms().getRealm(realm.getId());
+                    ClientModel clientModel = realmModel.getClientByClientId(client.getClientId());
+                    kcSession.getContext().setRealm(realmModel);
+                    kcSession.getContext().setClient(clientModel);
+                    return codeToToken(kcSession, realmModel, clientModel);
+                }, 10, 100);
             case REFRESH_TOKEN:
                 return refreshTokenGrant();
             case PASSWORD:
@@ -304,14 +311,14 @@ public class TokenEndpoint {
         }
     }
 
-    public Response codeToToken() {
+    public Response codeToToken(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client) {
         String code = formParams.getFirst(OAuth2Constants.CODE);
         if (code == null) {
             event.error(Errors.INVALID_CODE);
             throw new CorsErrorResponseException(cors, OAuthErrorException.INVALID_REQUEST, "Missing parameter: " + OAuth2Constants.CODE, Response.Status.BAD_REQUEST);
         }
 
-        OAuth2CodeParser.ParseResult parseResult = OAuth2CodeParser.parseCode(session, code, realm, event);
+        OAuth2CodeParser.ParseResult parseResult = OAuth2CodeParser.parseCode(kcSession, code, realm, event);
         if (parseResult.isIllegalCode()) {
             AuthenticatedClientSessionModel clientSession = parseResult.getClientSession();
 
@@ -408,44 +415,50 @@ public class TokenEndpoint {
         }
 
         try {
-            session.clientPolicy().triggerOnEvent(new TokenRequestContext(formParams, parseResult));
+            kcSession.clientPolicy().triggerOnEvent(new TokenRequestContext(formParams, parseResult));
         } catch (ClientPolicyException cpe) {
             event.error(cpe.getError());
             throw new CorsErrorResponseException(cors, OAuthErrorException.INVALID_GRANT, cpe.getErrorDetail(), Response.Status.BAD_REQUEST);
         }
 
-        updateClientSession(clientSession);
+        updateClientSession(clientSession, client);
         updateUserSessionFromClientAuth(userSession);
 
         // Compute client scopes again from scope parameter. Check if user still has them granted
         // (but in code-to-token request, it could just theoretically happen that they are not available)
         String scopeParam = codeData.getScope();
         Supplier<Stream<ClientScopeModel>> clientScopesSupplier = () -> TokenManager.getRequestedClientScopes(scopeParam, client);
-        if (!TokenManager.verifyConsentStillAvailable(session, user, client, clientScopesSupplier.get())) {
+        if (!TokenManager.verifyConsentStillAvailable(kcSession, user, client, clientScopesSupplier.get())) {
             event.error(Errors.NOT_ALLOWED);
             throw new CorsErrorResponseException(cors, OAuthErrorException.INVALID_SCOPE, "Client no longer has requested consent from user", Response.Status.BAD_REQUEST);
         }
 
-        ClientSessionContext clientSessionCtx = DefaultClientSessionContext.fromClientSessionAndScopeParameter(clientSession, scopeParam, session);
+        ClientSessionContext clientSessionCtx = DefaultClientSessionContext.fromClientSessionAndScopeParameter(clientSession, scopeParam, kcSession);
 
         // Set nonce as an attribute in the ClientSessionContext. Will be used for the token generation
         clientSessionCtx.setAttribute(OIDCLoginProtocol.NONCE_PARAM, codeData.getNonce());
 
-        return createTokenResponse(user, userSession, clientSessionCtx, scopeParam, true);
+        return createTokenResponse(kcSession, realm, client, user, userSession, clientSessionCtx, scopeParam, true);
     }
 
     public Response createTokenResponse(UserModel user, UserSessionModel userSession, ClientSessionContext clientSessionCtx,
-        String scopeParam, boolean code) {
-        AccessToken token = tokenManager.createClientAccessToken(session, realm, client, user, userSession, clientSessionCtx);
+                                        String scopeParam, boolean code) {
+        return this.createTokenResponse(this.session, this.realm, this.client, user, userSession, clientSessionCtx, scopeParam, code);
+    }
+
+    public Response createTokenResponse(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client,
+                                        final UserModel user, final UserSessionModel userSession, final ClientSessionContext clientSessionCtx,
+                                        final String scopeParam, final boolean code) {
+        AccessToken token = tokenManager.createClientAccessToken(kcSession, realm, client, user, userSession, clientSessionCtx);
 
         TokenManager.AccessTokenResponseBuilder responseBuilder = tokenManager
-            .responseBuilder(realm, client, event, session, userSession, clientSessionCtx).accessToken(token);
+            .responseBuilder(realm, client, event, kcSession, userSession, clientSessionCtx).accessToken(token);
         boolean useRefreshToken = OIDCAdvancedConfigWrapper.fromClientModel(client).isUseRefreshToken();
         if (useRefreshToken) {
             responseBuilder.generateRefreshToken();
         }
 
-        checkMtlsHoKToken(responseBuilder, useRefreshToken);
+        checkMtlsHoKToken(kcSession, client, responseBuilder, useRefreshToken);
 
         if (TokenUtil.isOIDCRequest(scopeParam)) {
             responseBuilder.generateIDToken().generateAccessTokenHash();
@@ -471,11 +484,11 @@ public class TokenEndpoint {
         return cors.builder(Response.ok(res).type(MediaType.APPLICATION_JSON_TYPE)).build();
     }
 
-    private void checkMtlsHoKToken(TokenManager.AccessTokenResponseBuilder responseBuilder, boolean useRefreshToken) {
+    private void checkMtlsHoKToken(KeycloakSession kcSession, ClientModel client, TokenManager.AccessTokenResponseBuilder responseBuilder, boolean useRefreshToken) {
         // KEYCLOAK-6771 Certificate Bound Token
         // https://tools.ietf.org/html/draft-ietf-oauth-mtls-08#section-3
         if (OIDCAdvancedConfigWrapper.fromClientModel(client).isUseMtlsHokToken()) {
-            AccessToken.CertConf certConf = MtlsHoKTokenUtil.bindTokenWithClientCertificate(request, session);
+            AccessToken.CertConf certConf = MtlsHoKTokenUtil.bindTokenWithClientCertificate(request, kcSession);
             if (certConf != null) {
                 responseBuilder.getAccessToken().setCertConf(certConf);
                 if (useRefreshToken) {
@@ -533,6 +546,10 @@ public class TokenEndpoint {
     }
 
     private void updateClientSession(AuthenticatedClientSessionModel clientSession) {
+        this.updateClientSession(clientSession, this.client);
+    }
+
+    private void updateClientSession(AuthenticatedClientSessionModel clientSession, ClientModel client) {
 
         if(clientSession == null) {
             ServicesLogger.LOGGER.clientSessionNull();
@@ -638,7 +655,7 @@ public class TokenEndpoint {
             responseBuilder.generateIDToken().generateAccessTokenHash();
         }
 
-        checkMtlsHoKToken(responseBuilder, useRefreshToken);
+        checkMtlsHoKToken(this.session, this.client, responseBuilder, useRefreshToken);
 
         // TODO : do the same as codeToToken()
         AccessTokenResponse res = responseBuilder.build();
@@ -732,7 +749,7 @@ public class TokenEndpoint {
             responseBuilder.getAccessToken().setSessionState(null);
         }
 
-        checkMtlsHoKToken(responseBuilder, useRefreshToken);
+        checkMtlsHoKToken(this.session, this.client, responseBuilder, useRefreshToken);
 
         String scopeParam = clientSessionCtx.getClientSession().getNote(OAuth2Constants.SCOPE);
         if (TokenUtil.isOIDCRequest(scopeParam)) {
