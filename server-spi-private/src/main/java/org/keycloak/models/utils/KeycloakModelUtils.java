@@ -54,7 +54,6 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.transaction.InvalidTransactionException;
 import javax.transaction.SystemException;
 import javax.transaction.Transaction;
-import javax.ws.rs.WebApplicationException;
 
 import java.security.Key;
 import java.security.KeyPair;
@@ -293,19 +292,12 @@ public final class KeycloakModelUtils {
             KeycloakTransaction tx = session.getTransactionManager();
             try {
                 tx.begin();
-                try {
-                    result = callable.run(session);
-                } catch(RuntimeException re) {
-                    if (!(re instanceof WebApplicationException))
-                        tx.setRollbackOnly();
-                    throw re;
-                } finally {
-                    if (tx.isActive()) {
-                        if (tx.getRollbackOnly()) {
-                            tx.rollback();
-                        } else {
-                            tx.commit();
-                        }
+                result = callable.run(session);
+                if (tx.isActive()) {
+                    if (tx.getRollbackOnly()) {
+                        tx.rollback();
+                    } else {
+                        tx.commit();
                     }
                 }
                 break;

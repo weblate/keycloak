@@ -101,6 +101,7 @@ import javax.ws.rs.InternalServerErrorException;
 import javax.ws.rs.OPTIONS;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -197,11 +198,15 @@ public class TokenEndpoint {
         switch (action) {
             case AUTHORIZATION_CODE:
                 return KeycloakModelUtils.runJobInRetriableTransaction(this.session.getKeycloakSessionFactory(), kcSession -> {
-                    RealmModel realmModel = kcSession.realms().getRealm(realm.getId());
-                    ClientModel clientModel = realmModel.getClientByClientId(client.getClientId());
-                    kcSession.getContext().setRealm(realmModel);
-                    kcSession.getContext().setClient(clientModel);
-                    return codeToToken(kcSession, realmModel, clientModel);
+                    try {
+                        RealmModel realmModel = kcSession.realms().getRealm(realm.getId());
+                        ClientModel clientModel = realmModel.getClientByClientId(client.getClientId());
+                        kcSession.getContext().setRealm(realmModel);
+                        kcSession.getContext().setClient(clientModel);
+                        return codeToToken(kcSession, realmModel, clientModel);
+                    } catch (WebApplicationException ex) {
+                        return ex.getResponse();
+                    }
                 }, 10, 100);
             case REFRESH_TOKEN:
                 return refreshTokenGrant();
@@ -311,7 +316,7 @@ public class TokenEndpoint {
         }
     }
 
-    public Response codeToToken(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client) {
+    private Response codeToToken(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client) {
         String code = formParams.getFirst(OAuth2Constants.CODE);
         if (code == null) {
             event.error(Errors.INVALID_CODE);
@@ -446,7 +451,7 @@ public class TokenEndpoint {
         return this.createTokenResponse(this.session, this.realm, this.client, user, userSession, clientSessionCtx, scopeParam, code);
     }
 
-    public Response createTokenResponse(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client,
+    private Response createTokenResponse(final KeycloakSession kcSession, final RealmModel realm, final ClientModel client,
                                         final UserModel user, final UserSessionModel userSession, final ClientSessionContext clientSessionCtx,
                                         final String scopeParam, final boolean code) {
         AccessToken token = tokenManager.createClientAccessToken(kcSession, realm, client, user, userSession, clientSessionCtx);
