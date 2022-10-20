@@ -112,9 +112,11 @@ import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -197,17 +199,22 @@ public class TokenEndpoint {
 
         switch (action) {
             case AUTHORIZATION_CODE:
-                return KeycloakModelUtils.runJobInRetriableTransaction(this.session.getKeycloakSessionFactory(), kcSession -> {
+                Map.Entry<Response, WebApplicationException> tuple = KeycloakModelUtils.runJobInRetriableTransaction(this.session.getKeycloakSessionFactory(), kcSession -> {
                     try {
                         RealmModel realmModel = kcSession.realms().getRealm(realm.getId());
                         ClientModel clientModel = realmModel.getClientByClientId(client.getClientId());
                         kcSession.getContext().setRealm(realmModel);
                         kcSession.getContext().setClient(clientModel);
-                        return codeToToken(kcSession, realmModel, clientModel);
+                        return Collections.singletonMap(codeToToken(kcSession, realmModel, clientModel), (WebApplicationException) null);
                     } catch (WebApplicationException ex) {
-                        return ex.getResponse();
+                        return Collections.singletonMap((Response) null, ex);
                     }
-                }, 10, 100);
+                }, 10, 100).entrySet().stream().findFirst().get();
+                if (tuple.getKey() != null) {
+                    return tuple.getKey();
+                } else {
+                    throw tuple.getValue();
+                }
             case REFRESH_TOKEN:
                 return refreshTokenGrant();
             case PASSWORD:
