@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jboss.logging.Logger;
 import org.keycloak.authorization.model.PermissionTicket;
 import org.keycloak.authorization.model.Policy;
 import org.keycloak.authorization.model.Resource;
@@ -79,6 +80,8 @@ public final class AuthorizationProvider implements Provider {
     private StoreFactory storeFactoryDelegate;
     private final KeycloakSession keycloakSession;
     private final RealmModel realm;
+
+    private static final Logger LOG = Logger.getLogger(AuthorizationProvider.class);
 
     public AuthorizationProvider(KeycloakSession session, RealmModel realm, PolicyEvaluator policyEvaluator) {
         this.keycloakSession = session;
@@ -369,6 +372,7 @@ public final class AuthorizationProvider implements Provider {
                     }
 
                     findDependentPolicies(resourceServer, policy.getId()).forEach(dependentPolicy -> {
+                        LOG.infof("Cleaning up associated policies from %s", dependentPolicy.getName());
                         dependentPolicy.removeAssociatedPolicy(policy);
                         if (dependentPolicy.getAssociatedPolicies().isEmpty()) {
                             delete(realm, dependentPolicy.getId());

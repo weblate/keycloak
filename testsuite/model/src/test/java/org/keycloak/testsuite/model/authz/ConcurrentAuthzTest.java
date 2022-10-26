@@ -17,6 +17,7 @@
 
 package org.keycloak.testsuite.model.authz;
 
+import org.jboss.logging.Logger;
 import org.junit.Test;
 import org.keycloak.authorization.AuthorizationProvider;
 import org.keycloak.authorization.model.Policy;
@@ -40,11 +41,18 @@ import org.keycloak.testsuite.model.RequireProvider;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.hamcrest.CoreMatchers.not;
-import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
@@ -57,6 +65,8 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
     private String resourceServerId;
     private String resourceId;
     private String adminId;
+
+    private static final Logger LOG = Logger.getLogger(ConcurrentAuthzTest.class);
 
     @Override
     protected void createEnvironment(KeycloakSession s) {
@@ -133,7 +143,7 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
     }
 
     @Test
-    public void testStaleCacheConcurrent() {
+    public void testStaleCacheConcurrent() throws ExecutionException, InterruptedException {
         String permissionId = withRealm(realmId, (session, realm) -> {
             AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
             StoreFactory aStore = authorization.getStoreFactory();
@@ -142,7 +152,7 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
 
 
             UmaPermissionRepresentation permission = new UmaPermissionRepresentation();
-            permission.setName(KeycloakModelUtils.generateId());
+            permission.setName("Permission A");
             permission.addUser(u.getUsername());
             permission.addScope("read");
 
@@ -151,39 +161,120 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
             return aStore.getPolicyStore().create(rs, permission).getId();
         });
 
-        IntStream.range(0, 500).parallel().forEach(index -> {
-            String createdPolicyId = withRealm(realmId, (session, realm) -> {
-                AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
-                StoreFactory aStore = authorization.getStoreFactory();
-                ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
-                Policy permission = aStore.getPolicyStore().findById(realm, rs, permissionId);
+        ExecutorService executor = Executors.newFixedThreadPool(3);
+        CompletableFuture allFutures = CompletableFuture.completedFuture(null);
 
-                UserPolicyRepresentation userRep = new UserPolicyRepresentation();
-                userRep.setName("isAdminUser" + index);
-                userRep.addUser("admin");
-                Policy associatedPolicy = aStore.getPolicyStore().create(rs, userRep);
-                permission.addAssociatedPolicy(associatedPolicy);
-                return associatedPolicy.getId();
-            });
+        withRealm(realmId, (session, realm) -> {
+            AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
+            StoreFactory aStore = authorization.getStoreFactory();
+            UserModel u = session.users().getUserById(realm, adminId);
+            ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
 
-            withRealm(realmId, (session, realm) -> {
-                AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
-                StoreFactory aStore = authorization.getStoreFactory();
-                ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
-                Policy permission = aStore.getPolicyStore().findById(realm, rs, permissionId);
-
-                assertThat(permission.getAssociatedPolicies(), not(contains(nullValue())));
-                ModelToRepresentation.toRepresentation(permission, authorization);
-
-                return null;
-            });
-
-            withRealm(realmId, (session, realm) -> {
-                AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
-                StoreFactory aStore = authorization.getStoreFactory();
-                aStore.getPolicyStore().delete(realm, createdPolicyId);
-                return null;
-            });
+            aStore.getPolicyStore().findByResourceServer(rs).forEach(p -> System.out.println("In the beginning contains: " + p.getId() + " name " + p.getName()));
+            return null;
         });
+
+
+        for (int i = 0; i < 500; i++) {
+            final int index = i;
+            final AtomicReference<String> createdPolicyId = new AtomicReference<>();
+
+            CountDownLatch created = new CountDownLatch(1);
+            CompletableFuture future = CompletableFuture.runAsync(new Runnable() {
+                @Override
+                public void run() {
+                    createdPolicyId.set(withRealm(realmId, (session, realm) -> {
+                        AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
+                        StoreFactory aStore = authorization.getStoreFactory();
+                        ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
+                        Policy permission = aStore.getPolicyStore().findById(realm, rs, permissionId);
+
+                        UserPolicyRepresentation userRep = new UserPolicyRepresentation();
+                        userRep.setName("isAdminUser" + index);
+                        userRep.addUser("admin");
+                        Policy associatedPolicy = aStore.getPolicyStore().create(rs, userRep);
+                        LOG.infof("Creating %s with id %s", "isAdminUser" + index, associatedPolicy.getId());
+                        permission.addAssociatedPolicy(associatedPolicy);
+                        LOG.infof("In creating: %s", permission.getAssociatedPolicies().stream().map(p -> p.getId() + " - " + p.getName()).collect(Collectors.toList()));
+                        return associatedPolicy.getId();
+                    }));
+                }
+            }, executor).whenComplete(new BiConsumer<Void, Throwable>() {
+                @Override
+                public void accept(Void unused, Throwable throwable) {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                    }
+
+                    created.countDown();
+                }
+            });
+
+            CountDownLatch read = new CountDownLatch(1);
+            CompletableFuture future2 = CompletableFuture.runAsync(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        created.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    withRealm(realmId, (session, realm) -> {
+
+                        AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
+                        StoreFactory aStore = authorization.getStoreFactory();
+                        ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
+                        Policy permission = aStore.getPolicyStore().findById(realm, rs, permissionId);
+
+                        LOG.infof("In reading: %s", permission.getAssociatedPolicies().stream().map(p -> p.getId() + " - " + p.getName()).collect(Collectors.toList()));
+                        ModelToRepresentation.toRepresentation(permission, authorization);
+
+                        return null;
+                    });
+                }
+            }, executor).whenComplete(new BiConsumer<Void, Throwable>() {
+                @Override
+                public void accept(Void unused, Throwable throwable) {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                    }
+
+                    read.countDown();
+                }
+            });
+
+            CompletableFuture future3 = CompletableFuture.runAsync(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        read.await();
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    LOG.infof("In removal: %s", createdPolicyId.get());
+
+                    withRealm(realmId, (session, realm) -> {
+                        assertThat(createdPolicyId.get(), notNullValue());
+                        AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
+                        StoreFactory aStore = authorization.getStoreFactory();
+                        aStore.getPolicyStore().delete(realm, createdPolicyId.get());
+                        return null;
+                    });
+                }
+            }, executor).whenComplete(new BiConsumer<Void, Throwable>() {
+                @Override
+                public void accept(Void unused, Throwable throwable) {
+                    if (throwable != null) {
+                        throwable.printStackTrace();
+                    }
+                }
+            });
+
+
+            allFutures = CompletableFuture.allOf(allFutures, future, future2, future3);
+        }
+        allFutures.get();
+        executor.shutdownNow();
     }
 }

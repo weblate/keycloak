@@ -13,7 +13,7 @@
     <name>Tests for logical storage layer</name>
     <description>Tests for storage layer functionality targetting logical layer, i.e. models</description>
     <packaging>jar</packaging>
-    
+
     <properties>
         <keycloak.connectionsJpa.driver>org.h2.Driver</keycloak.connectionsJpa.driver>
         <keycloak.connectionsJpa.database>keycloak</keycloak.connectionsJpa.database>
@@ -28,7 +28,7 @@
         <keycloak.profile.feature.map_storage>disabled</keycloak.profile.feature.map_storage>
         <keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>false</keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -207,143 +207,17 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>                        
+            </plugin>
         </plugins>
     </build>
-    
-    <profiles>
-        <profile>
-            <id>legacy-jpa</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpa</keycloak.model.parameters>
-            </properties>
-        </profile>
 
+    <profiles>
         <profile>
             <id>legacy-jpa+infinispan</id>
             <properties>
                 <keycloak.model.parameters>Infinispan,LegacyJpa</keycloak.model.parameters>
             </properties>
         </profile>
-
-        <profile>
-            <id>legacy-jpa+infinispan+client-storage</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpa,Infinispan,HardcodedClientStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa+cross-dc-infinispan</id>
-            <properties>
-                <keycloak.model.parameters>CrossDCInfinispan,LegacyJpa</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa+cross-dc-infinispan-offline-sessions-preloading</id>
-            <properties>
-                <keycloak.model.parameters>CrossDCInfinispan,LegacyJpa</keycloak.model.parameters>
-                <keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>true</keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa+infinispan-offline-sessions-preloading</id>
-            <properties>
-                <keycloak.model.parameters>Infinispan,LegacyJpa</keycloak.model.parameters>
-                <keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>true</keycloak.userSessions.infinispan.preloadOfflineSessionsFromDatabase>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation+infinispan</id>
-            <properties>
-                <keycloak.model.parameters>Infinispan,LegacyJpaFederation,TestsuiteUserMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation-backward+infinispan</id>
-            <properties>
-                <keycloak.model.parameters>Infinispan,LegacyJpaFederation,BackwardsCompatibilityUserStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,TestsuiteUserMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation-backward</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,BackwardsCompatibilityUserStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation-file-storage</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,TestsuiteUserFileStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation-file-storage+infinispan</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,TestsuiteUserFileStorage,Infinispan</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation+ldap</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,LdapUserStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>legacy-jpa-federation+ldap+infinispan</id>
-            <properties>
-                <keycloak.model.parameters>LegacyJpaFederation,LdapUserStorage,Infinispan</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>map</id>
-            <properties>
-                <keycloak.profile.feature.map_storage>enabled</keycloak.profile.feature.map_storage>
-                <keycloak.model.parameters>LegacyJpa,Map,ConcurrentHashMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>hot-rod</id>
-            <properties>
-                <keycloak.profile.feature.map_storage>enabled</keycloak.profile.feature.map_storage>
-                <keycloak.model.parameters>LegacyJpa,Map,HotRodMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>map-ldap</id>
-            <properties>
-                <keycloak.profile.feature.map_storage>enabled</keycloak.profile.feature.map_storage>
-                <keycloak.model.parameters>Jpa,Map,LdapMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
-        <profile>
-            <id>map-jpa</id>
-            <properties>
-                <keycloak.profile.feature.map_storage>enabled</keycloak.profile.feature.map_storage>
-                <keycloak.model.parameters>Map,JpaMapStorage</keycloak.model.parameters>
-            </properties>
-        </profile>
-
         <profile>
             <id>.asyncProfiler</id>
             <activation>
@@ -357,5 +231,5 @@
         </profile>
 
     </profiles>
-    
+
 </project>
