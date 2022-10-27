@@ -91,7 +91,6 @@ public class QuarkusRequestFilter implements Handler<RoutingContext> {
                 context.next();
                 promise.tryComplete();
             } catch (Throwable cause) {
-                tx.setRollbackOnly();
                 promise.fail(cause);
                 // re-throw so that the any exception is handled from parent
                 throw new RuntimeException(cause);
