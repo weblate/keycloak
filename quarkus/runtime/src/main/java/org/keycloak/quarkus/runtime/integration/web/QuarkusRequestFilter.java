@@ -20,6 +20,8 @@ package org.keycloak.quarkus.runtime.integration.web;
 import static org.keycloak.services.resources.KeycloakApplication.getSessionFactory;
 
 import java.util.function.Predicate;
+
+import org.jboss.logging.Logger;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.util.Resteasy;
 import org.keycloak.models.KeycloakSession;
@@ -36,6 +38,7 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
+import org.keycloak.quarkus.runtime.cli.ExecutionExceptionHandler;
 
 /**
  * <p>This filter is responsible for managing the request lifecycle as well as setting up the necessary context to process incoming
@@ -45,6 +48,8 @@ import io.vertx.ext.web.RoutingContext;
  * as blocking).
  */
 public class QuarkusRequestFilter implements Handler<RoutingContext> {
+
+    private final static Logger logger = Logger.getLogger(QuarkusRequestFilter.class);
 
     private static final Handler<AsyncResult<Object>> EMPTY_RESULT = result -> {
         // we don't really care about the result because any exception thrown should be handled by the parent class
@@ -68,7 +73,17 @@ public class QuarkusRequestFilter implements Handler<RoutingContext> {
         }
         // our code should always be run as blocking until we don't provide a better support for running non-blocking code
         // in the event loop
-        context.vertx().executeBlocking(createBlockingHandler(context), false, EMPTY_RESULT);
+        context.vertx().executeBlocking(createBlockingHandler(context), false, event -> {
+            if (event.failed()) {
+                logger.warn("execution failed", event.cause());
+                if (!context.response().ended()) {
+                    if (!context.response().headWritten()) {
+                        unexpectedErrorResponse(context.response());
+                    }
+                    context.response().end().result();
+                }
+            }
+        });
     }
 
     private boolean ignoreContext(RoutingContext context) {
@@ -91,9 +106,9 @@ public class QuarkusRequestFilter implements Handler<RoutingContext> {
                 context.next();
                 promise.tryComplete();
             } catch (Throwable cause) {
-                promise.fail(cause);
-                // re-throw so that the any exception is handled from parent
-                throw new RuntimeException(cause);
+                logger.warn("execution failed, rolling back transaction", cause);
+                tx.setRollbackOnly();
+                promise.tryFail(cause);
             } finally {
                 close(session);
             }
