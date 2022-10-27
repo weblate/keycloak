@@ -40,7 +40,7 @@ import io.vertx.ext.web.RoutingContext;
 /**
  * <p>This filter is responsible for managing the request lifecycle as well as setting up the necessary context to process incoming
  * requests.
- * 
+ *
  * <p>The filter itself runs in a event loop and should delegate to worker threads any blocking code (for now, all requests are handled
  * as blocking).
  */
@@ -81,7 +81,8 @@ public class QuarkusRequestFilter implements Handler<RoutingContext> {
             KeycloakSession session = sessionFactory.create();
 
             configureContextualData(context, createClientConnection(context.request()), session);
-            configureEndHandler(context, session);
+            // avoid closing the session when headers are sent, as this could cause a remote call in RESTEasy's executor
+            // configureEndHandler(context, session);
 
             KeycloakTransactionManager tx = session.getTransactionManager();
 
@@ -90,16 +91,12 @@ public class QuarkusRequestFilter implements Handler<RoutingContext> {
                 context.next();
                 promise.tryComplete();
             } catch (Throwable cause) {
+                tx.setRollbackOnly();
                 promise.fail(cause);
                 // re-throw so that the any exception is handled from parent
                 throw new RuntimeException(cause);
             } finally {
-                if (!context.response().headWritten()) {
-                    // make sure the session is closed in case the handler is not called
-                    // it might happen that, for whatever reason, downstream handlers do not end the response or
-                    // no data was written to the response
-                    close(session);
-                }
+                close(session);
             }
         };
     }
