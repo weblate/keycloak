@@ -16,10 +16,9 @@
  */
 package org.keycloak.models.map.storage.jpa;
 
-import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.KeycloakTransaction;
 import org.keycloak.models.map.common.AbstractEntity;
 import org.keycloak.models.map.storage.MapKeycloakTransaction;
 import org.keycloak.models.map.storage.MapStorage;
@@ -30,19 +29,19 @@ public class JpaMapStorageProvider implements MapStorageProvider {
 
     private final JpaMapStorageProviderFactory factory;
     private final KeycloakSession session;
-    private final EntityManager em;
+    private final EntityManagerFactory emf;
     private final String sessionTxKey;
 
-    public JpaMapStorageProvider(JpaMapStorageProviderFactory factory, KeycloakSession session, EntityManager em, String sessionTxKey) {
+    public JpaMapStorageProvider(JpaMapStorageProviderFactory factory, KeycloakSession session, EntityManagerFactory emf, String sessionTxKey) {
         this.factory = factory;
         this.session = session;
-        this.em = em;
+        this.emf = emf;
         this.sessionTxKey = sessionTxKey;
     }
 
     @Override
     public void close() {
-        em.close();
+        // em.close();
     }
 
     @Override
@@ -51,15 +50,17 @@ public class JpaMapStorageProvider implements MapStorageProvider {
         // validate and update the schema for the storage.
         this.factory.validateAndUpdateSchema(this.session, modelType);
         // create the JPA transaction and enlist it if needed.
-        if (session.getAttribute(this.sessionTxKey) == null) {
-            KeycloakTransaction jpaTransaction = new JpaTransactionWrapper(em.getTransaction());
+        JpaTransactionWrapper jpaTransaction = (JpaTransactionWrapper) session.getAttribute(this.sessionTxKey);
+        if (jpaTransaction == null) {
+            jpaTransaction = new JpaTransactionWrapper(emf);
             session.getTransactionManager().enlist(jpaTransaction);
             session.setAttribute(this.sessionTxKey, jpaTransaction);
         }
+        JpaTransactionWrapper jpaTransactionStatic = jpaTransaction;
         return new MapStorage<V, M>() {
             @Override
             public MapKeycloakTransaction<V, M> createTransaction(KeycloakSession session) {
-                return factory.createTransaction(session, modelType, em);
+                return factory.createTransaction(session, modelType, jpaTransactionStatic.getEntityManager());
             }
         };
     }

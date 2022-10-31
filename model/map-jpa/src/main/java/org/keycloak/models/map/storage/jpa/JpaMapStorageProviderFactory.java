@@ -257,7 +257,7 @@ public class JpaMapStorageProviderFactory implements
         // check the session for a cached provider before creating a new one.
         JpaMapStorageProvider provider = session.getAttribute(this.sessionProviderKey, JpaMapStorageProvider.class);
         if (provider == null) {
-            provider = new JpaMapStorageProvider(this, session, getEntityManager(), this.sessionTxKey);
+            provider = new JpaMapStorageProvider(this, session, emf, this.sessionTxKey);
             session.setAttribute(this.sessionProviderKey, provider);
         }
         return provider;

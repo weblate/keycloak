@@ -34,8 +34,14 @@ public class JdbcConnectionFromPool extends JdbcConnection {
     }
 
     @Override
+    public void rollback() throws DatabaseException {
+        // super.rollback();
+        // do not close the connection here, as connection will be returned to the pool or continued to be used in this session
+    }
+
+    @Override
     public void close() throws DatabaseException {
-        rollback();
+        // rollback();
         // do not close the connection here, as connection will be returned to the pool or continued to be used in this session
     }
 }

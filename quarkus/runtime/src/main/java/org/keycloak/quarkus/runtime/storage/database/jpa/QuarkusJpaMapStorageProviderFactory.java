@@ -80,7 +80,9 @@ public class QuarkusJpaMapStorageProviderFactory extends JpaMapStorageProviderFa
     protected Connection getConnection() {
         SessionFactoryImpl entityManagerFactory = getEntityManagerFactory().unwrap(SessionFactoryImpl.class);
         try {
-            return entityManagerFactory.getJdbcServices().getBootstrapJdbcConnectionAccess().obtainConnection();
+            Connection connection = entityManagerFactory.getJdbcServices().getBootstrapJdbcConnectionAccess().obtainConnection();
+            connection.setAutoCommit(false);
+            return connection;
         } catch (SQLException cause) {
             throw new RuntimeException("Failed to obtain JDBC connection", cause);
         }
