@@ -379,6 +379,7 @@ public final class AuthorizationProvider implements Provider {
                         }
                     });
 
+                    LOG.info("Continuing with policy removal.");
                     policyStore.delete(realm, id);
                 }
             }

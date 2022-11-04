@@ -34,6 +34,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.jboss.logging.Logger;
 import org.keycloak.authorization.AuthorizationProvider;
 import org.keycloak.authorization.jpa.entities.PolicyEntity;
 import org.keycloak.authorization.model.Policy;
@@ -83,8 +84,11 @@ public class JPAPolicyStore implements PolicyStore {
         return model;
     }
 
+    private static final Logger LOG = Logger.getLogger(JPAPolicyStore.class);
+
     @Override
     public void delete(RealmModel realm, String id) {
+        LOG.infof("Removing entity %s", id);
         PolicyEntity policy = entityManager.find(PolicyEntity.class, id, LockModeType.PESSIMISTIC_WRITE);
         if (policy != null) {
             this.entityManager.remove(policy);

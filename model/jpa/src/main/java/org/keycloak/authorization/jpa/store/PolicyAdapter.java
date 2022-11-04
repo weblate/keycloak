@@ -16,6 +16,7 @@
  */
 package org.keycloak.authorization.jpa.store;
 
+import org.jboss.logging.Logger;
 import org.keycloak.authorization.jpa.entities.PolicyEntity;
 import org.keycloak.authorization.jpa.entities.ResourceEntity;
 import org.keycloak.authorization.jpa.entities.ScopeEntity;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -205,11 +207,17 @@ public class PolicyAdapter extends AbstractAuthorizationModel implements Policy,
         entity.getAssociatedPolicies().add(toEntity(em, associatedPolicy));
     }
 
+    private static final Logger LOG = Logger.getLogger(PolicyAdapter.class);
+
     @Override
     public void removeAssociatedPolicy(Policy associatedPolicy) {
         throwExceptionIfReadonly();
-        entity.getAssociatedPolicies().remove(toEntity(em, associatedPolicy));
+        PolicyEntity policyEntity = toEntity(em, associatedPolicy);
 
+        LOG.infof("Associated policies on entity: %s", entity.getAssociatedPolicies().stream().map(p -> p.toString() + " - " + p.getId()).collect(Collectors.toList()));
+        LOG.infof("Removing association for entity: %s - %s", policyEntity, policyEntity.getId());
+        LOG.infof("Removing policy with result: %s", entity.getAssociatedPolicies().remove(policyEntity));
+        em.flush();
     }
 
     @Override
@@ -251,8 +259,10 @@ public class PolicyAdapter extends AbstractAuthorizationModel implements Policy,
 
     public static PolicyEntity toEntity(EntityManager em, Policy policy) {
         if (policy instanceof PolicyAdapter) {
+            LOG.info("Entity was already loaded");
             return ((PolicyAdapter)policy).getEntity();
         } else {
+            LOG.info("Load entity from DB");
             return em.getReference(PolicyEntity.class, policy.getId());
         }
     }

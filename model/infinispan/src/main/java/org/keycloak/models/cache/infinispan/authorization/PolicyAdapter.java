@@ -16,6 +16,7 @@
  */
 package org.keycloak.models.cache.infinispan.authorization;
 
+import org.jboss.logging.Logger;
 import org.keycloak.authorization.model.CachedModel;
 import org.keycloak.authorization.model.Policy;
 import org.keycloak.authorization.model.Resource;
@@ -54,9 +55,12 @@ public class PolicyAdapter implements Policy, CachedModel<Policy> {
         this.modelSupplier = this::getPolicyModel;
     }
 
+    private static final Logger LOG = Logger.getLogger(PolicyAdapter.class);
+
     @Override
     public Policy getDelegateForUpdate() {
         if (updated == null) {
+            LOG.infof("Loading delegate for update");
             updated = modelSupplier.get();
             String defaultResourceType = updated.getConfig().get("defaultResourceType");
             cacheSession.registerPolicyInvalidation(cached.getId(), cached.getName(), cached.getResourcesIds(modelSupplier), cached.getScopesIds(modelSupplier), defaultResourceType, cached.getResourceServerId());

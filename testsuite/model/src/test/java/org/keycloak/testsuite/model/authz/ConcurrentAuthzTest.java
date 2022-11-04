@@ -27,6 +27,7 @@ import org.keycloak.models.ClientModel;
 import org.keycloak.models.ClientProvider;
 import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.KeycloakTransaction;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.RealmProvider;
 import org.keycloak.models.UserModel;
@@ -56,7 +57,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
-@RequireProvider(CachedStoreFactoryProvider.class)
 @RequireProvider(RealmProvider.class)
 @RequireProvider(ClientProvider.class)
 public class ConcurrentAuthzTest extends KeycloakModelTest {
@@ -164,26 +164,13 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
         ExecutorService executor = Executors.newFixedThreadPool(3);
         CompletableFuture allFutures = CompletableFuture.completedFuture(null);
 
-        withRealm(realmId, (session, realm) -> {
-            AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
-            StoreFactory aStore = authorization.getStoreFactory();
-            UserModel u = session.users().getUserById(realm, adminId);
-            ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
-
-            aStore.getPolicyStore().findByResourceServer(rs).forEach(p -> System.out.println("In the beginning contains: " + p.getId() + " name " + p.getName()));
-            return null;
-        });
-
-
-        for (int i = 0; i < 500; i++) {
+        for (int i = 0; i < 2000; i++) {
             final int index = i;
-            final AtomicReference<String> createdPolicyId = new AtomicReference<>();
-
-            CountDownLatch created = new CountDownLatch(1);
             CompletableFuture future = CompletableFuture.runAsync(new Runnable() {
                 @Override
                 public void run() {
-                    createdPolicyId.set(withRealm(realmId, (session, realm) -> {
+                    String createdPolicyId = withRealm(realmId, (session, realm) -> {
+                        LOG.infof("Started creating tx");
                         AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
                         StoreFactory aStore = authorization.getStoreFactory();
                         ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
@@ -193,34 +180,16 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
                         userRep.setName("isAdminUser" + index);
                         userRep.addUser("admin");
                         Policy associatedPolicy = aStore.getPolicyStore().create(rs, userRep);
-                        LOG.infof("Creating %s with id %s", "isAdminUser" + index, associatedPolicy.getId());
+                        LOG.infof("Created %s with id %s", "isAdminUser" + index, associatedPolicy.getId());
                         permission.addAssociatedPolicy(associatedPolicy);
-                        LOG.infof("In creating: %s", permission.getAssociatedPolicies().stream().map(p -> p.getId() + " - " + p.getName()).collect(Collectors.toList()));
+                        LOG.infof("Added as associated result: %s", permission.getAssociatedPolicies().stream().map(p -> p.getId() + " - " + p.getName()).collect(Collectors.toList()));
+
+                        enlistEndLog(session, "Ending creating tx");
                         return associatedPolicy.getId();
-                    }));
-                }
-            }, executor).whenComplete(new BiConsumer<Void, Throwable>() {
-                @Override
-                public void accept(Void unused, Throwable throwable) {
-                    if (throwable != null) {
-                        throwable.printStackTrace();
-                    }
+                    });
 
-                    created.countDown();
-                }
-            });
-
-            CountDownLatch read = new CountDownLatch(1);
-            CompletableFuture future2 = CompletableFuture.runAsync(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        created.await();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
                     withRealm(realmId, (session, realm) -> {
-
+                        LOG.infof("Started reading tx");
                         AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
                         StoreFactory aStore = authorization.getStoreFactory();
                         ResourceServer rs = aStore.getResourceServerStore().findById(realm, resourceServerId);
@@ -229,36 +198,16 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
                         LOG.infof("In reading: %s", permission.getAssociatedPolicies().stream().map(p -> p.getId() + " - " + p.getName()).collect(Collectors.toList()));
                         ModelToRepresentation.toRepresentation(permission, authorization);
 
+                        enlistEndLog(session, "Ending reading tx");
                         return null;
                     });
-                }
-            }, executor).whenComplete(new BiConsumer<Void, Throwable>() {
-                @Override
-                public void accept(Void unused, Throwable throwable) {
-                    if (throwable != null) {
-                        throwable.printStackTrace();
-                    }
-
-                    read.countDown();
-                }
-            });
-
-            CompletableFuture future3 = CompletableFuture.runAsync(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        read.await();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    LOG.infof("In removal: %s", createdPolicyId.get());
 
                     withRealm(realmId, (session, realm) -> {
-                        assertThat(createdPolicyId.get(), notNullValue());
+                        LOG.infof("Started deleting tx");
                         AuthorizationProvider authorization = session.getProvider(AuthorizationProvider.class);
                         StoreFactory aStore = authorization.getStoreFactory();
-                        aStore.getPolicyStore().delete(realm, createdPolicyId.get());
+                        aStore.getPolicyStore().delete(realm, createdPolicyId);
+                        enlistEndLog(session, "Ending deleting tx");
                         return null;
                     });
                 }
@@ -271,10 +220,43 @@ public class ConcurrentAuthzTest extends KeycloakModelTest {
                 }
             });
 
-
-            allFutures = CompletableFuture.allOf(allFutures, future, future2, future3);
+            allFutures = CompletableFuture.allOf(allFutures, future);
         }
         allFutures.get();
         executor.shutdownNow();
+    }
+
+    public static void enlistEndLog(KeycloakSession session, String message) {
+        session.getTransactionManager().enlistAfterCompletion(new KeycloakTransaction() {
+            @Override
+            public void begin() {
+
+            }
+
+            @Override
+            public void commit() {
+                LOG.info(message);
+            }
+
+            @Override
+            public void rollback() {
+
+            }
+
+            @Override
+            public void setRollbackOnly() {
+
+            }
+
+            @Override
+            public boolean getRollbackOnly() {
+                return false;
+            }
+
+            @Override
+            public boolean isActive() {
+                return false;
+            }
+        });
     }
 }
