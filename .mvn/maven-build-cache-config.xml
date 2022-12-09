@@ -21,11 +21,9 @@
     <configuration>
         <enabled>true</enabled>
         <hashAlgorithm>XX</hashAlgorithm>
-        <!--
         <remote enabled="true">
-            <url>http://your-buildcache-url</url>
+            <url>https://ahus1.github.io/keycloak/</url>
         </remote>
-        -->
     </configuration>
     <input>
         <global>

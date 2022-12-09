@@ -59,6 +59,7 @@ jobs:
           path: |
             ~/.m2/repository/org/keycloak
             !~/.m2/repository/org/keycloak/**/*.tar.gz
+            !~/.m2/repository/org/keycloak/**/*-sources.jar*
 
       - name: Remove keycloak artifacts before caching
         if: steps.cache.outputs.cache-hit != 'true'
