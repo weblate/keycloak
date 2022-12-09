@@ -36,9 +36,19 @@ jobs:
 
       - name: Build Keycloak
         run: |
-           ./mvnw clean install -nsu -B -e -DskipTests -Pdistribution
+           ./mvnw clean install -nsu -B -e -DskipTests -Pdistribution -T 2C
            ./mvnw clean install -nsu -B -e -f testsuite/integration-arquillian/servers/auth-server -Pauth-server-quarkus
-           ./mvnw clean install -nsu -B -e -f testsuite/integration-arquillian/servers/auth-server -Pauth-server-undertow
+           ./mvnw clean install -nsu -B -e -f testsuite/integration-arquillian/servers/auth-server
+
+      - name: Make all content in local to non-local content
+        working-directory: /home/runner/.m2/build-cache
+        run: |
+          for i in `find . -name local`; do mv $i/* `dirname $i`; rmdir $i; done
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: /home/runner/.m2/build-cache/
 
       - name: Store Keycloak artifacts
         id: store-keycloak
@@ -53,6 +63,22 @@ jobs:
       - name: Remove keycloak artifacts before caching
         if: steps.cache.outputs.cache-hit != 'true'
         run: rm -rf ~/.m2/repository/org/keycloak
+
+  github-pages:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    name: GitHub Pages
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v1
 
 # Tests: Regular distribution
 

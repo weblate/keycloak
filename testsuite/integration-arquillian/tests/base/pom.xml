@@ -822,17 +822,22 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-enforcer-plugin</artifactId>
-                        <goals>
-                            <goal>enforce</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <requireActiveProfile>
-                                    <profiles>map-storage</profiles>
-                                    <message>map-storage profile not active</message>
-                                </requireActiveProfile>
-                            </rules>
-                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>enforce-profile</id>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireActiveProfile>
+                                            <profiles>map-storage</profiles>
+                                            <message>map-storage profile not active</message>
+                                        </requireActiveProfile>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
