@@ -1,3 +1,52 @@
+= Transition from Java EE to Jakarta EE
+
+We have migrated our codebase from Java EE (Enterprise Edition) to Jakarta EE, which brings various changes into Keycloak.
+Java EE was a widely adopted technology stack for developing enterprise applications in Java.
+However, due to certain legal and licensing issues, Java EE was transferred to the Eclipse Foundation and renamed as Jakarta EE.
+
+We have upgraded all Jakarta EE specifications in order to support Jakarta EE 10, such as:
+
+* Jakarta Persistence 3.1
+* Jakarta RESTful Web Services 3.1
+* Jakarta Mail API 2.1
+* Jakarta Servlet 6.0
+* Jakarta Activation 2.1
+* Other
+
+Jakarta EE 10 provides a modernized, simplified, lightweight approach to building cloud-native Java applications.
+The main changes provided within this initiative are changing the namespace from `javax.\*` to `jakarta.*`.
+It does not apply for `javax.*` packages provided directly in the JDK, such as `javax.security`, `javax.net`, `javax.crypto`, etc.
+
+You can be affected by these changes in your custom extensions, providers or JPA entities.
+
+== Deprecated Adapters stay on Java EE
+
+As most of our OIDC and SAML client adapters are already deprecated, we will not upgrade them to support Jakarta EE.
+However, client adapters with Java EE support can still communicate with the Keycloak server.
+
+=  We have upgraded to Quarkus 3!
+
+We have upgraded the Quarkus Java framework, which lives underneath Keycloak and brings many benefits.
+Quarkus 3 continues the tradition of propelling Java development by moving fast and providing a cutting-edge user experience with the latest technologies.
+It continues to improve overall performance and efficiency.
+
+Quarkus 3 is based on Jakarta EE 10, the same as Keycloak, creating smooth interoperability between them.
+In addition, it contains Eclipse MicroProfile 6, which aligns with Jakarta EE 10 Core Profile.
+The central part of the Quarkus 3 upgrade is built-in support for JPA 3.1 and Hibernate ORM 6.
+
+=== Stop using `quarkus.hibernate-orm.*` properties
+For Quarkus 3, it is impossible to simultaneously specify Hibernate ORM properties for datasources via the `persistence.xml` file and Quarkus properties.
+As for Keycloak, these properties are specified via the `persistence.xml` file, and it is required to specify the additional properties there.
+
+= We use Hibernate ORM 6 now
+
+Keycloak now benefits from the upgrade to Hibernate ORM 6.2, which includes improved performance, better SQL, modern JDK support, and support for modern RDBMS features.
+The performance improvements primarily affect JDBC, HQL Translation, and Criteria Translation.
+
+If you have custom providers or JPA entities, these changes may affect you.
+
+We recommend reviewing the link:https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.0:-Hibernate-ORM-5-to-6-migration[Quarkus migration guide] or link:https://hibernate.org/orm/releases/[Hibernate release notes] for more information.
+
 = Legacy Promise API removed from Keycloak JS adapter
 
 The legacy Promise API methods have been removed from the Keycloak JS adapter. This means that calling `.success()` and `.error()` on promises returned from the adapter is no longer possible. Instead standardized Promise methods such as https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then[`.then()`] and https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/catch[`.catch()`] should be used.
