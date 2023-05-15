@@ -34,9 +34,10 @@ Quarkus 3 is based on Jakarta EE 10, the same as Keycloak, creating smooth inter
 In addition, it contains Eclipse MicroProfile 6, which aligns with Jakarta EE 10 Core Profile.
 The central part of the Quarkus 3 upgrade is built-in support for JPA 3.1 and Hibernate ORM 6.
 
-=== Stop using `quarkus.hibernate-orm.*` properties
-For Quarkus 3, it is impossible to simultaneously specify Hibernate ORM properties for datasources via the `persistence.xml` file and Quarkus properties.
-As for Keycloak, these properties are specified via the `persistence.xml` file, and it is required to specify the additional properties there.
+== `quarkus.hibernate-orm.*` properties no longer working
+
+For Quarkus 3, Hibernate ORM configurations must be specified in either the `persistence.xml` file or in Quarkus properties, but not in both places.
+Keycloak uses a `persistence.xml` file, therefore, it is no longer possible to override Keycloak's JPA store configurations via Quarkus`' configuration properties for the default persistence unit whose names start whith `quarkus.hibernate-orm`.
 
 = We use Hibernate ORM 6 now
 
@@ -45,7 +46,7 @@ The performance improvements primarily affect JDBC, HQL Translation, and Criteri
 
 If you have custom providers or JPA entities, these changes may affect you.
 
-We recommend reviewing the link:https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.0:-Hibernate-ORM-5-to-6-migration[Quarkus migration guide] or link:https://hibernate.org/orm/releases/[Hibernate release notes] for more information.
+We recommend reviewing the link:https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.0:-Hibernate-ORM-5-to-6-migration[Quarkus migration guide] or the link:https://hibernate.org/orm/releases/[Hibernate release notes] for more information.
 
 = Legacy Promise API removed from Keycloak JS adapter
 
