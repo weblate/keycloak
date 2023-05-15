@@ -1,8 +1,6 @@
 = Transition from Java EE to Jakarta EE
 
-We have migrated our codebase from Java EE (Enterprise Edition) to Jakarta EE, which brings various changes into Keycloak.
-Java EE was a widely adopted technology stack for developing enterprise applications in Java.
-However, due to certain legal and licensing issues, Java EE was transferred to the Eclipse Foundation and renamed as Jakarta EE.
+Keycloak migrated its codebase from Java EE (Enterprise Edition) to its successor Jakarta EE, which brings various changes into Keycloak.
 
 We have upgraded all Jakarta EE specifications in order to support Jakarta EE 10, such as:
 
@@ -11,11 +9,10 @@ We have upgraded all Jakarta EE specifications in order to support Jakarta EE 10
 * Jakarta Mail API 2.1
 * Jakarta Servlet 6.0
 * Jakarta Activation 2.1
-* Other
 
 Jakarta EE 10 provides a modernized, simplified, lightweight approach to building cloud-native Java applications.
-The main changes provided within this initiative are changing the namespace from `javax.\*` to `jakarta.*`.
-It does not apply for `javax.*` packages provided directly in the JDK, such as `javax.security`, `javax.net`, `javax.crypto`, etc.
+The main changes provided within this initiative are changing the namespace from `+javax.*+` to `+jakarta.*+`.
+It does not apply for `+javax.*+` packages provided directly in the JDK, such as `javax.security`, `javax.net`, `javax.crypto`, etc.
 
 You can be affected by these changes in your custom extensions, providers or JPA entities.
 
@@ -24,9 +21,9 @@ You can be affected by these changes in your custom extensions, providers or JPA
 As most of our OIDC and SAML client adapters are already deprecated, we will not upgrade them to support Jakarta EE.
 However, client adapters with Java EE support can still communicate with the Keycloak server.
 
-=  We have upgraded to Quarkus 3!
+= Upgrade to Quarkus 3
 
-We have upgraded the Quarkus Java framework, which lives underneath Keycloak and brings many benefits.
+Keycloak upgraded to version 3 of the Quarkus Java framework.
 Quarkus 3 continues the tradition of propelling Java development by moving fast and providing a cutting-edge user experience with the latest technologies.
 It continues to improve overall performance and efficiency.
 
@@ -39,7 +36,7 @@ The central part of the Quarkus 3 upgrade is built-in support for JPA 3.1 and Hi
 For Quarkus 3, Hibernate ORM configurations must be specified in either the `persistence.xml` file or in Quarkus properties, but not in both places.
 Keycloak uses a `persistence.xml` file, therefore, it is no longer possible to override Keycloak's JPA store configurations via Quarkus`' configuration properties for the default persistence unit whose names start whith `quarkus.hibernate-orm`.
 
-= We use Hibernate ORM 6 now
+= Upgrade to Hibernate ORM 6
 
 Keycloak now benefits from the upgrade to Hibernate ORM 6.2, which includes improved performance, better SQL, modern JDK support, and support for modern RDBMS features.
 The performance improvements primarily affect JDBC, HQL Translation, and Criteria Translation.

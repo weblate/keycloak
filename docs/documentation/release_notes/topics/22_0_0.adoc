@@ -1,20 +1,20 @@
 = Transition from Java EE to Jakarta EE
 
-We have migrated our codebase from Java EE (Enterprise Edition) to Jakarta EE, which brings various changes into Keycloak.
+Keycloak migrated its codebase from Java EE (Enterprise Edition) to its successor Jakarta EE, which brings various changes into Keycloak.
 We have upgraded all Jakarta EE specifications in order to support Jakarta EE 10.
-You can be affected by changing `javax.\*` to the `jakarta.*` namespace.
+You can be affected by the change from the `+javax.*+` package namespace to the `+jakarta.*+` package namespace.
 
 See the migration guide for more details.
 
-= We upgraded to Quarkus 3!
+= Upgrade to Quarkus 3
 
-We have upgraded the Quarkus Java framework, which lives underneath Keycloak and brings many benefits.
+Keycloak upgraded to version 3 of the Quarkus Java framework.
 Quarkus 3 continues the tradition of propelling Java development by moving fast and providing a cutting-edge user experience with the latest technologies.
 It continues to improve overall performance and efficiency.
 
-Since Quarkus 3 is a major upgrade, some breaking changes were inevitable. See the migration guide for details.
+See the migration guide for details.
 
-= We use Hibernate ORM 6 now
+= Upgrade to Hibernate ORM 6
 
 Keycloak now benefits from the upgrade to Hibernate ORM 6.2, which includes improved performance, better SQL, modern JDK support, and support for modern RDBMS features.
 
