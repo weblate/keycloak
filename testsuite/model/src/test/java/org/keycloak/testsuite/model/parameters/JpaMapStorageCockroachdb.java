@@ -51,7 +51,6 @@ import org.keycloak.provider.Spi;
 import org.keycloak.sessions.AuthenticationSessionSpi;
 import org.keycloak.testsuite.model.Config;
 import org.keycloak.testsuite.model.KeycloakModelParameters;
-import org.keycloak.testsuite.model.KeycloakModelTest;
 import org.testcontainers.containers.CockroachContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -133,7 +132,6 @@ public class JpaMapStorageCockroachdb extends KeycloakModelParameters {
 
             COCKROACHDB_DB_JDBC_URL = COCKROACHDB_CONTAINER.getJdbcUrl();
         }
-        System.setProperty(KeycloakModelTest.KEYCLOAK_MODELTESTS_RETRY_TRANSACTIONS, "true");
     }
 
     @Override

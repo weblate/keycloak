@@ -194,12 +194,7 @@ jobs:
       - id: matrix-db
         # language=bash
         run: |
-          # For PRs, run only PostgreSQL, on branches and nightly runs run all databases
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo 'db=["chm", "hot-rod", "jpa-postgres"]' >> $GITHUB_OUTPUT
-          else
-            echo 'db=["chm", "hot-rod", "jpa-postgres", "jpa-cockroach"]' >> $GITHUB_OUTPUT
-          fi
+          echo 'db=["chm", "hot-rod", "jpa-postgres", "jpa-cockroach"]' >> $GITHUB_OUTPUT
     outputs:
       db: ${{ steps.matrix-db.outputs.db }}
 

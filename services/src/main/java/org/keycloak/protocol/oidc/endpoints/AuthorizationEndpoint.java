@@ -20,8 +20,6 @@ package org.keycloak.protocol.oidc.endpoints;
 import org.jboss.logging.Logger;
 import org.keycloak.OAuth2Constants;
 import org.keycloak.authentication.AuthenticationProcessor;
-import org.keycloak.common.Profile;
-import org.keycloak.common.util.ResponseSessionTask;
 import org.keycloak.constants.AdapterConstants;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
@@ -32,7 +30,6 @@ import org.keycloak.models.AuthenticationFlowModel;
 import org.keycloak.models.ClientModel;
 import org.keycloak.models.Constants;
 import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.protocol.AuthorizationEndpointBase;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.oidc.endpoints.request.AuthorizationEndpointRequest;
@@ -130,37 +127,19 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
      * Process the request in a retriable transaction.
      */
     private Response processInRetriableTransaction(final MultivaluedMap<String, String> formParameters) {
-        if (Profile.isFeatureEnabled(Profile.Feature.MAP_STORAGE)) {
-            return KeycloakModelUtils.runJobInRetriableTransaction(session.getKeycloakSessionFactory(), new ResponseSessionTask(session) {
-                @Override
-                public Response runInternal(KeycloakSession session) {
-                    session.getContext().getHttpResponse().setWriteCookiesOnTransactionComplete();
-                    // create another instance of the endpoint to isolate each run.
-                    AuthorizationEndpoint other = new AuthorizationEndpoint(session,
-                            new EventBuilder(session.getContext().getRealm(), session, clientConnection), action);
-                    // process the request in the created instance.
-                    return other.process(formParameters);
-                }
-            }, 10, 100);
-        } else {
-            return process(formParameters);
-        }
-    }
-
-    private Response process(MultivaluedMap<String, String> params) {
-        String clientId = AuthorizationEndpointRequestParserProcessor.getClientId(event, session, params);
+        String clientId = AuthorizationEndpointRequestParserProcessor.getClientId(event, session, formParameters);
 
         checkSsl();
         checkRealm();
 
         try {
-            session.clientPolicy().triggerOnEvent(new PreAuthorizationRequestContext(clientId, params));
+            session.clientPolicy().triggerOnEvent(new PreAuthorizationRequestContext(clientId, formParameters));
         } catch (ClientPolicyException cpe) {
             throw new ErrorPageException(session, authenticationSession, cpe.getErrorStatus(), cpe.getErrorDetail());
         }
         checkClient(clientId);
 
-        request = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, client, params, AuthorizationEndpointRequestParserProcessor.EndpointType.OIDC_AUTH_ENDPOINT);
+        request = AuthorizationEndpointRequestParserProcessor.parseRequest(event, session, client, formParameters, AuthorizationEndpointRequestParserProcessor.EndpointType.OIDC_AUTH_ENDPOINT);
 
         AuthorizationEndpointChecker checker = new AuthorizationEndpointChecker()
                 .event(event)
@@ -168,7 +147,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
                 .realm(realm)
                 .request(request)
                 .session(session)
-                .params(params);
+                .params(formParameters);
 
         try {
             checker.checkRedirectUri();
@@ -206,7 +185,7 @@ public class AuthorizationEndpoint extends AuthorizationEndpointBase {
         }
 
         try {
-            session.clientPolicy().triggerOnEvent(new AuthorizationRequestContext(parsedResponseType, request, redirectUri, params));
+            session.clientPolicy().triggerOnEvent(new AuthorizationRequestContext(parsedResponseType, request, redirectUri, formParameters));
         } catch (ClientPolicyException cpe) {
             return redirectErrorToClient(parsedResponseMode, cpe.getError(), cpe.getErrorDetail());
         }

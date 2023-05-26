@@ -28,7 +28,6 @@ import org.keycloak.events.admin.OperationType;
 import org.keycloak.events.admin.ResourceType;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
-import org.keycloak.models.utils.KeycloakModelUtils;
 import org.keycloak.models.utils.ModelToRepresentation;
 import org.keycloak.models.utils.RepresentationToModel;
 import org.keycloak.models.utils.StripSecretsUtils;
@@ -127,22 +126,20 @@ public class ComponentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response create(ComponentRepresentation rep) {
         auth.realm().requireManageRealm();
-        return KeycloakModelUtils.runJobInRetriableTransaction(session.getKeycloakSessionFactory(), kcSession -> {
-            RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
-            try {
-                ComponentModel model = RepresentationToModel.toModel(kcSession, rep);
-                if (model.getParentId() == null) model.setParentId(realmModel.getId());
+        RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(session, () -> session.realms().getRealm(realm.getId()));
+        try {
+            ComponentModel model = RepresentationToModel.toModel(session, rep);
+            if (model.getParentId() == null) model.setParentId(realmModel.getId());
 
-                model = realmModel.addComponentModel(model);
+            model = realmModel.addComponentModel(model);
 
-                adminEvent.operation(OperationType.CREATE).resourcePath(kcSession.getContext().getUri(), model.getId()).representation(StripSecretsUtils.strip(kcSession, rep)).success();
-                return Response.created(kcSession.getContext().getUri().getAbsolutePathBuilder().path(model.getId()).build()).build();
-            } catch (ComponentValidationException e) {
-                return localizedErrorResponse(e);
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException(e);
-            }
-        }, 10, 100);
+            adminEvent.operation(OperationType.CREATE).resourcePath(session.getContext().getUri(), model.getId()).representation(StripSecretsUtils.strip(session, rep)).success();
+            return Response.created(session.getContext().getUri().getAbsolutePathBuilder().path(model.getId()).build()).build();
+        } catch (ComponentValidationException e) {
+            return localizedErrorResponse(e);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(e);
+        }
     }
 
     @GET
@@ -164,39 +161,34 @@ public class ComponentResource {
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateComponent(@PathParam("id") String id, ComponentRepresentation rep) {
         auth.realm().requireManageRealm();
-        return KeycloakModelUtils.runJobInRetriableTransaction(session.getKeycloakSessionFactory(), kcSession -> {
-            RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
-            try {
-                ComponentModel model = realmModel.getComponent(id);
-                if (model == null) {
-                    throw new NotFoundException("Could not find component");
-                }
-                RepresentationToModel.updateComponent(kcSession, rep, model, false);
-                adminEvent.operation(OperationType.UPDATE).resourcePath(kcSession.getContext().getUri()).representation(StripSecretsUtils.strip(kcSession, rep)).success();
-                realmModel.updateComponent(model);
-                return Response.noContent().build();
-            } catch (ComponentValidationException e) {
-                return localizedErrorResponse(e);
-            } catch (IllegalArgumentException e) {
-                throw new BadRequestException();
+        RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(session, () -> session.realms().getRealm(realm.getId()));
+        try {
+            ComponentModel model = realmModel.getComponent(id);
+            if (model == null) {
+                throw new NotFoundException("Could not find component");
             }
-        }, 10, 100);
+            RepresentationToModel.updateComponent(session, rep, model, false);
+            adminEvent.operation(OperationType.UPDATE).resourcePath(session.getContext().getUri()).representation(StripSecretsUtils.strip(session, rep)).success();
+            realmModel.updateComponent(model);
+            return Response.noContent().build();
+        } catch (ComponentValidationException e) {
+            return localizedErrorResponse(e);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException();
+        }
     }
     @DELETE
     @Path("{id}")
     public void removeComponent(@PathParam("id") String id) {
         auth.realm().requireManageRealm();
-        KeycloakModelUtils.runJobInRetriableTransaction(session.getKeycloakSessionFactory(), kcSession -> {
-            RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(kcSession, () -> kcSession.realms().getRealm(realm.getId()));
+        RealmModel realmModel = LockObjectsForModification.lockRealmsForModification(session, () -> session.realms().getRealm(realm.getId()));
 
-            ComponentModel model = realmModel.getComponent(id);
-            if (model == null) {
-                throw new NotFoundException("Could not find component");
-            }
-            adminEvent.operation(OperationType.DELETE).resourcePath(kcSession.getContext().getUri()).success();
-            realmModel.removeComponent(model);
-            return null;
-        }, 10 , 100);
+        ComponentModel model = realmModel.getComponent(id);
+        if (model == null) {
+            throw new NotFoundException("Could not find component");
+        }
+        adminEvent.operation(OperationType.DELETE).resourcePath(session.getContext().getUri()).success();
+        realmModel.removeComponent(model);
     }
 
     private Response localizedErrorResponse(ComponentValidationException cve) {
