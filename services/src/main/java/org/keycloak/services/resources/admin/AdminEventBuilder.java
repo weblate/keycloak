@@ -82,12 +82,15 @@ public class AdminEventBuilder {
         UserModel newAuthUser = session.users().getUserById(newAuthRealm, this.auth.getUser().getId());
         ClientModel newAuthClient = session.clients().getClientById(newAuthRealm, this.auth.getClient().getId());
 
-        return new AdminEventBuilder(
+        AdminEventBuilder adminEventBuilder = new AdminEventBuilder(
                 newEventRealm,
                 new AdminAuth(newAuthRealm, this.auth.getToken(), newAuthUser, newAuthClient),
                 session,
                 ipAddress
         );
+
+        adminEventBuilder.getEvent().setResourceType(adminEvent.getResourceType());
+        return adminEventBuilder;
     }
 
     public AdminEventBuilder realm(RealmModel realm) {
