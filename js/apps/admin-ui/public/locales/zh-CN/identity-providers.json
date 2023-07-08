@@ -156,7 +156,7 @@
     "inherit": "继承",
     "import": "导入",
     "legacy": "引用",
-    "force": "强制",
+    "force": "强制"
   },
   "syncModeOverride": "同步模式覆盖",
   "mapperType": "映射器类型",
